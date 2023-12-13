@@ -14,11 +14,11 @@ namespace CiclogramWriter.Core
 		/// <summary>
 		/// Список команд
 		/// </summary>
-		public List<Command> CommandList { get; set; }
+		public List<Command> CommandList { get; set; } = new List<Command>();
 		/// <summary>
 		/// Список заявок
 		/// </summary>
-		public List<Request> RequestList { get; set; }
+		public List<Request> RequestList { get; set; } = new List<Request>();
 		/// <summary>
 		/// Прямой доступ к памяти (англ. direct memory access, DMA)
 		/// </summary>
