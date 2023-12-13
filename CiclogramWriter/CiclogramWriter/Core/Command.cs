@@ -32,5 +32,9 @@ namespace CiclogramWriter.Core
 		/// Статус выполнения
 		/// </summary>
 		public ExecutionStatus ExecutionStatus { get; set; }
+		/// <summary>
+		/// Тип команды
+		/// </summary>
+		public CommandType CommandType { get; set; }
 	}
 }

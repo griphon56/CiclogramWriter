@@ -16,6 +16,10 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public int Fop { get; set; } = 3;
 		/// <summary>
+		/// Вероятность добавления в кэш (необходимо для рандомной генерации команд)
+		/// </summary>
+		public int ProbabilityAddToCache { get; set; } = 75;
+		/// <summary>
 		/// Список микропроцессоров
 		/// </summary>
 		public List<Microprocessor> MPList { get; set; } = new List<Microprocessor>();
