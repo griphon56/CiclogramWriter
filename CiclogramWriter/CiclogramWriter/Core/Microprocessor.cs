@@ -23,5 +23,13 @@ namespace CiclogramWriter.Core
 		/// Прямой доступ к памяти (англ. direct memory access, DMA)
 		/// </summary>
 		public bool NeedDMA { get; set; } = false;
+		/// <summary>
+		/// Количетво контроллеров
+		/// </summary>
+		public int NumberOfController { get; set; } = 1;
+		/// <summary>
+		/// Количество конвейеров
+		/// </summary>
+		public int NumberOfConveyors { get; private set; } = 1;
 	}
 }

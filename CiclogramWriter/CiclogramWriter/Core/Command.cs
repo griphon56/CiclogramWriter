@@ -25,7 +25,8 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public int NumberOfClockCycles { get; set; }
 		/// <summary>
-		/// Приоритет выполнения
+		/// Приоритет выполнения.
+		/// Высокий приоритет = 1.
 		/// </summary>
 		public int Priority { get; set; }
 		/// <summary>

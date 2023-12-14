@@ -23,6 +23,8 @@ namespace CiclogramWriter
 			tb_mp_sh.Text = processor.Fsh.ToString();
 			tb_f_op.Text = processor.Fop.ToString();
 			tb_ver_in_cache.Text = processor.ProbabilityAddToCache.ToString();
+
+			CreateChartCanvas();
 		}
 		/// <summary>
 		/// Метод добавления микропроцессора
@@ -106,18 +108,22 @@ namespace CiclogramWriter
 			if(o_command.IsCached && !o_command.IsManagementOperation)
 			{
 				o_command.CommandType = Enums.CommandType.Cache_False;
+				o_command.Priority = 1;
 			}
 			else if (o_command.IsCached && o_command.IsManagementOperation)
 			{
 				o_command.CommandType = Enums.CommandType.Cache_MO;
+				o_command.Priority = 1;
 			}
 			else if (!o_command.IsCached && !o_command.IsManagementOperation)
 			{
 				o_command.CommandType = Enums.CommandType.NotCache_False;
+				o_command.Priority = 1;
 			}
 			else if (!o_command.IsCached && o_command.IsManagementOperation)
 			{
 				o_command.CommandType = Enums.CommandType.NotCache_MO;
+				o_command.Priority = 2;
 			}
 
 			o_mp.CommandList.Add(o_command);
@@ -190,25 +196,53 @@ namespace CiclogramWriter
 						switch (o_command.CommandType)
 						{
 							case Enums.CommandType.Cache_False:
-								s_result += $"Команда №{o_command.Id} (Кеш; -)\n";
+								s_result += $"Команда №{o_command.Id} (Кеш; -) - {o_command.NumberOfClockCycles} тактов.\n";
 								break;
 							case Enums.CommandType.Cache_MO:
-								s_result += $"Команда №{o_command.Id} (Кеш; У.О.)\n";
+								s_result += $"Команда №{o_command.Id} (Кеш; У.О.) - {o_command.NumberOfClockCycles} тактов.\n";
 								break;
 							case Enums.CommandType.NotCache_False:
-								s_result += $"Команда №{o_command.Id} (Не кеш; -)\n";
+								s_result += $"Команда №{o_command.Id} (Не кеш; -) - {o_command.NumberOfClockCycles} тактов.\n";
 								break;
 							case Enums.CommandType.NotCache_MO:
-								s_result += $"Команда №{o_command.Id} (Не кеш; У.О.)\n";
+								s_result += $"Команда №{o_command.Id} (Не кеш; У.О.) - {o_command.NumberOfClockCycles} тактов.\n";
 								break;
 						}
-
 					}
 				}
 
-				rt_list_command.Text += s_result;
+				rt_list_command.Text += s_result + "\n";
 			}
+		}
+		/// <summary>
+		/// Метод создания холста для циклограммы
+		/// </summary>
+		private void CreateChartCanvas()
+		{
+			int QuadroSize = 10;
+
+			Bitmap bitmap = new Bitmap(500 * QuadroSize, 90 * QuadroSize);
+			Graphics g = Graphics.FromImage(bitmap);
 			
+			int step = 0;
+
+			for (int i = 0; i < 500; i++)//y
+			{
+				g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), step, 0, step, 120 * QuadroSize);
+				step += QuadroSize;
+			}
+
+			step = 0;
+			for (int i = 0; i < 120; i++)//x
+			{
+				g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), 0, step, 100000, step);
+				step += QuadroSize;
+			}
+
+			//pb_canvas.Margin = new Thickness(0, 0, 0, 0);
+			pb_canvas.Width = 500 * QuadroSize;
+			pb_canvas.Height = 90 * QuadroSize;
+			//pb_canvas.Image = ToBitmapImage(bitmap);
 		}
 	}
 }
