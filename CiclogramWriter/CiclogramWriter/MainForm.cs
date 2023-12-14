@@ -23,8 +23,6 @@ namespace CiclogramWriter
 			tb_mp_sh.Text = processor.Fsh.ToString();
 			tb_f_op.Text = processor.Fop.ToString();
 			tb_ver_in_cache.Text = processor.ProbabilityAddToCache.ToString();
-
-			CreateChartCanvas();
 		}
 		/// <summary>
 		/// Метод добавления микропроцессора
@@ -35,7 +33,8 @@ namespace CiclogramWriter
 			int id_mp = (a_id_mp!=null && a_id_mp.Count>0) ? a_id_mp.Max() + 1 : 1;
 			var o_mp_new = new Microprocessor()
 			{
-				Id = id_mp
+				Id = id_mp,
+				NumberOfController = (int)num_of_control.Value
 			};
 
 			tb_num_pm.Text = id_mp.ToString();
@@ -219,30 +218,76 @@ namespace CiclogramWriter
 		/// </summary>
 		private void CreateChartCanvas()
 		{
-			int QuadroSize = 10;
+			// Шаг для отрисовки квадрата.
+			int size_step = 20;
+			int size_width = 950;
+			int size_height = 850;
 
-			Bitmap bitmap = new Bitmap(500 * QuadroSize, 90 * QuadroSize);
-			Graphics g = Graphics.FromImage(bitmap);
-			
+			Bitmap o_bitm = new Bitmap(size_width, size_height);
+			Graphics o_graphic = Graphics.FromImage(o_bitm);
+
+			#region Настройка шрифта
+			Font drawFont = new Font("Calibri", 10);
+			SolidBrush drawBrush = new SolidBrush(Color.Black);
+			StringFormat drawFormat = new StringFormat();
+			drawFormat.Alignment = StringAlignment.Near;
+			#endregion
+
+			#region Сетка графика
+			// Вертикальные линии
 			int step = 0;
-
-			for (int i = 0; i < 500; i++)//y
+			for (int i = 0; i < 100; i++)
 			{
-				g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), step, 0, step, 120 * QuadroSize);
-				step += QuadroSize;
+				o_graphic.DrawLine(new Pen(Color.Silver), step, 0, step, size_height);
+				step += size_step;
 			}
 
+			// Горизонтальные линии
 			step = 0;
-			for (int i = 0; i < 120; i++)//x
+			for (int i = 0; i < 100; i++)
 			{
-				g.DrawLine(new System.Drawing.Pen(System.Drawing.Color.Black), 0, step, 100000, step);
-				step += QuadroSize;
+				o_graphic.DrawLine(new Pen(Color.Silver), 0, step, size_width, step);
+				step += size_step;
+			}
+			#endregion
+
+			// Контроллер и конвейер микропроцессора
+			int offset_line = size_step * 5;
+			int step_line_mp = size_step * 5;
+			foreach(var o_mp in processor.MPList)
+			{
+				for (int i = 0; i < o_mp.NumberOfController; i++)
+				{
+					o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
+					
+					Rectangle drawRect_k = new Rectangle(0, step_line_mp+ size_step, size_step*2, size_step*2);
+					o_graphic.DrawString($"k{i+1}", drawFont, drawBrush, drawRect_k, drawFormat);
+
+					step_line_mp += offset_line;
+				}
+
+				o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
+				
+				Rectangle drawRect_kk = new Rectangle(0, step_line_mp + size_step, size_step * 2, size_step * 2);
+				o_graphic.DrawString("kk", drawFont, drawBrush, drawRect_kk, drawFormat);
+
+				step_line_mp += offset_line;
 			}
 
-			//pb_canvas.Margin = new Thickness(0, 0, 0, 0);
-			pb_canvas.Width = 500 * QuadroSize;
-			pb_canvas.Height = 90 * QuadroSize;
-			//pb_canvas.Image = ToBitmapImage(bitmap);
+			pb_canvas.Image = o_bitm;
+		}
+		/// <summary>
+		/// Метод отрисовки графика
+		/// </summary>
+		private void btn_draw_chart_Click(object sender, EventArgs e)
+		{
+			if (processor.MPList.Count == 0)
+			{
+				MessageBox.Show("Добавьте микропроцессор.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+			
+			CreateChartCanvas();
 		}
 	}
 }
