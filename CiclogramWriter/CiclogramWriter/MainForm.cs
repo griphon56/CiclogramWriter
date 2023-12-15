@@ -251,15 +251,22 @@ namespace CiclogramWriter
 			}
 			#endregion
 
-			// Контроллер и конвейер микропроцессора
 			int offset_line = size_step * 5;
 			int step_line_mp = size_step * 5;
 			foreach(var o_mp in processor.MPList)
 			{
+				int i_start_x_kn = 0;
+				int i_start_y_kn = 0;
+
+				int i_start_x_kk = 0;
+				int i_start_y_kk = 0;
+
+				#region Контроллер и конвейер микропроцессора
 				for (int i = 0; i < o_mp.NumberOfController; i++)
 				{
 					o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
-					
+					i_start_y_kn = step_line_mp;
+
 					Rectangle drawRect_k = new Rectangle(0, step_line_mp+ size_step, size_step*2, size_step*2);
 					o_graphic.DrawString($"k{i+1}", drawFont, drawBrush, drawRect_k, drawFormat);
 
@@ -267,11 +274,37 @@ namespace CiclogramWriter
 				}
 
 				o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
-				
+				i_start_y_kk = step_line_mp;
+
 				Rectangle drawRect_kk = new Rectangle(0, step_line_mp + size_step, size_step * 2, size_step * 2);
 				o_graphic.DrawString("kk", drawFont, drawBrush, drawRect_kk, drawFormat);
 
 				step_line_mp += offset_line;
+				#endregion
+
+				#region Команды
+				foreach(var o_command in o_mp.CommandList)
+				{
+					switch (o_command.CommandType)
+					{
+						case Enums.CommandType.Cache_False:
+							{
+								var drawRect_command = new Rectangle(i_start_x_kn, i_start_y_kn - size_step, size_step, size_step);
+								o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), drawRect_command);
+								
+								i_start_x_kn += size_step;
+
+								o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(i_start_x_kn, i_start_y_kn, size_step * o_command.NumberOfClockCycles, size_step));
+								i_start_x_kn += (size_step * o_command.NumberOfClockCycles);
+
+								o_graphic.DrawString($"{o_command.Id}", drawFont, drawBrush, drawRect_command, drawFormat);
+
+								break;
+							}
+					}
+				}
+
+				#endregion
 			}
 
 			pb_canvas.Image = o_bitm;
