@@ -218,12 +218,9 @@ namespace CiclogramWriter
 		/// </summary>
 		private void CreateChartCanvas()
 		{
-			// Шаг для отрисовки квадрата.
-			int size_step = 20;
-			int size_width = 950;
-			int size_height = 850;
+			var o_draw = new DrawChart();
 
-			Bitmap o_bitm = new Bitmap(size_width, size_height);
+			Bitmap o_bitm = new Bitmap(o_draw.WidthCanvas, o_draw.HeightCanvas);
 			Graphics o_graphic = Graphics.FromImage(o_bitm);
 
 			#region Настройка шрифта
@@ -233,26 +230,8 @@ namespace CiclogramWriter
 			drawFormat.Alignment = StringAlignment.Near;
 			#endregion
 
-			#region Сетка графика
-			// Вертикальные линии
-			int step = 0;
-			for (int i = 0; i < 100; i++)
-			{
-				o_graphic.DrawLine(new Pen(Color.Silver), step, 0, step, size_height);
-				step += size_step;
-			}
+			o_draw.DrawGrid(o_graphic);
 
-			// Горизонтальные линии
-			step = 0;
-			for (int i = 0; i < 100; i++)
-			{
-				o_graphic.DrawLine(new Pen(Color.Silver), 0, step, size_width, step);
-				step += size_step;
-			}
-			#endregion
-
-			int offset_line = size_step * 5;
-			int step_line_mp = size_step * 5;
 			foreach(var o_mp in processor.MPList)
 			{
 				int i_start_x_kn = 0;
@@ -264,40 +243,28 @@ namespace CiclogramWriter
 				#region Контроллер и конвейер микропроцессора
 				for (int i = 0; i < o_mp.NumberOfController; i++)
 				{
-					o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
-					i_start_y_kn = step_line_mp;
-
-					Rectangle drawRect_k = new Rectangle(0, step_line_mp+ size_step, size_step*2, size_step*2);
-					o_graphic.DrawString($"k{i+1}", drawFont, drawBrush, drawRect_k, drawFormat);
-
-					step_line_mp += offset_line;
+					o_draw.DrawLine(o_graphic, $"k{i + 1}", out i_start_y_kn);
+					o_draw.StepIndentLine += o_draw.IndentLine;
 				}
 
-				o_graphic.DrawLine(new Pen(Color.Black), 0, step_line_mp, size_width, step_line_mp);
-				i_start_y_kk = step_line_mp;
-
-				Rectangle drawRect_kk = new Rectangle(0, step_line_mp + size_step, size_step * 2, size_step * 2);
-				o_graphic.DrawString("kk", drawFont, drawBrush, drawRect_kk, drawFormat);
-
-				step_line_mp += offset_line;
+				o_draw.DrawLine(o_graphic, "kk", out i_start_y_kk);
+				o_draw.StepIndentLine += o_draw.IndentLine;
 				#endregion
 
 				#region Команды
-				foreach(var o_command in o_mp.CommandList)
+				foreach (var o_command in o_mp.CommandList)
 				{
 					switch (o_command.CommandType)
 					{
 						case Enums.CommandType.Cache_False:
 							{
-								var drawRect_command = new Rectangle(i_start_x_kn, i_start_y_kn - size_step, size_step, size_step);
-								o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), drawRect_command);
-								
-								i_start_x_kn += size_step;
+								o_draw.DrawWhiteTopKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
 
-								o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(i_start_x_kn, i_start_y_kn, size_step * o_command.NumberOfClockCycles, size_step));
-								i_start_x_kn += (size_step * o_command.NumberOfClockCycles);
+								i_start_x_kn += end_point_x;
 
-								o_graphic.DrawString($"{o_command.Id}", drawFont, drawBrush, drawRect_command, drawFormat);
+								o_draw.DrawWhiteBottomKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+
+								i_start_x_kn += end_point_x;
 
 								break;
 							}
