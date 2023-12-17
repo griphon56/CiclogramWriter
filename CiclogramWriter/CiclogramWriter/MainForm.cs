@@ -223,13 +223,6 @@ namespace CiclogramWriter
 			Bitmap o_bitm = new Bitmap(o_draw.WidthCanvas, o_draw.HeightCanvas);
 			Graphics o_graphic = Graphics.FromImage(o_bitm);
 
-			#region Настройка шрифта
-			Font drawFont = new Font("Calibri", 10);
-			SolidBrush drawBrush = new SolidBrush(Color.Black);
-			StringFormat drawFormat = new StringFormat();
-			drawFormat.Alignment = StringAlignment.Near;
-			#endregion
-
 			o_draw.DrawGrid(o_graphic);
 
 			foreach(var o_mp in processor.MPList)
