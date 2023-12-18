@@ -24,7 +24,7 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public bool NeedDMA { get; set; } = false;
 		/// <summary>
-		/// Количетво контроллеров
+		/// Количество контроллеров
 		/// </summary>
 		public int NumberOfController { get; set; } = 1;
 		/// <summary>

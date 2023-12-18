@@ -251,11 +251,11 @@ namespace CiclogramWriter
 					{
 						case Enums.CommandType.Cache_False:
 							{
-								o_draw.DrawWhiteTopKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
 
 								i_start_x_kn += end_point_x;
 
-								o_draw.DrawWhiteBottomKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+								o_draw.DrawMicroBusKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
 
 								i_start_x_kn += end_point_x;
 

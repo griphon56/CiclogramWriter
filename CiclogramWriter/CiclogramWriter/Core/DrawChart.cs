@@ -75,13 +75,13 @@ namespace CiclogramWriter.Core
 			o_graphic.DrawString(s_content, DrawFont, DrawBrush, drawRect_k, DrawFormat);
 		}
 		/// <summary>
-		/// Метод отрисовки 
+		/// Метод отрисовки кеша (выбираем, декодируем)
 		/// </summary>
 		/// <param name="o_graphic"></param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
 		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
-		public void DrawWhiteTopKN(Graphics o_graphic, string s_content, int point_x, int point_y, out int end_point_x)
+		public void DrawCacheKN(Graphics o_graphic, string s_content, int point_x, int point_y, out int end_point_x)
 		{
 			var drawRect_command = new Rectangle(point_x, point_y - DrawChart.SquareSize, DrawChart.SquareSize, DrawChart.SquareSize);
 			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), drawRect_command);
@@ -91,14 +91,43 @@ namespace CiclogramWriter.Core
 			end_point_x = DrawChart.SquareSize;
 		}
 		/// <summary>
-		/// Метод отрисовки 
+		/// Метод отрисовки шины микропроцессора в контроллере
 		/// </summary>
 		/// <param name="o_graphic"></param>
 		/// <param name="num_cycles">Количество тактов</param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
 		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
-		public void DrawWhiteBottomKN(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
+		public void DrawMicroBusKN(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
+		{
+			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
+
+			end_point_x = (DrawChart.SquareSize * num_cycles);
+		}
+
+		/// <summary>
+		/// Метод отрисовки метод системной шины в контроллер
+		/// </summary>
+		/// <param name="o_graphic"></param>
+		/// <param name="num_cycles">Количество тактов</param>
+		/// <param name="point_x">Начальная точка Х </param>
+		/// <param name="point_y">Начальная точка У</param>
+		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
+		public void DrawSystemBusKN(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
+		{
+			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
+
+			end_point_x = (DrawChart.SquareSize * num_cycles);
+		}
+		/// <summary>
+		/// Метод отрисовки системной шины в конвейере.
+		/// </summary>
+		/// <param name="o_graphic"></param>
+		/// <param name="num_cycles">Количество тактов</param>
+		/// <param name="point_x">Начальная точка Х </param>
+		/// <param name="point_y">Начальная точка У</param>
+		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
+		public void DrawSystemBusKK(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
 		{
 			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
 
