@@ -84,7 +84,7 @@ namespace CiclogramWriter.Core
 		public void DrawCacheKN(Graphics o_graphic, string s_content, int point_x, int point_y, out int end_point_x)
 		{
 			var drawRect_command = new Rectangle(point_x, point_y - DrawChart.SquareSize, DrawChart.SquareSize, DrawChart.SquareSize);
-			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), drawRect_command);
+			o_graphic.FillRectangle(new SolidBrush(Color.LightGreen), drawRect_command);
 
 			o_graphic.DrawString(s_content, DrawFont, DrawBrush, drawRect_command, DrawFormat);
 
@@ -100,9 +100,10 @@ namespace CiclogramWriter.Core
 		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
 		public void DrawMicroBusKN(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
 		{
-			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
+			int i_width = DrawChart.SquareSize * num_cycles;
+			o_graphic.FillRectangle(new SolidBrush(Color.LightGreen), new Rectangle(point_x, point_y, i_width, DrawChart.SquareSize));
 
-			end_point_x = (DrawChart.SquareSize * num_cycles);
+			end_point_x = i_width;
 		}
 
 		/// <summary>
@@ -112,12 +113,17 @@ namespace CiclogramWriter.Core
 		/// <param name="num_cycles">Количество тактов</param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
+		/// <param name="f_sh">f(сш)</param>
 		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
-		public void DrawSystemBusKN(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
+		public void DrawSystemBusKN(Graphics o_graphic, string s_content, int num_cycles, int point_x, int point_y, int f_sh, out int end_point_x)
 		{
-			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
+			int i_width = DrawChart.SquareSize * num_cycles * f_sh;
+			var drawRect_command = new Rectangle(point_x, point_y, i_width, DrawChart.SquareSize);
+			o_graphic.FillRectangle(new SolidBrush(Color.LightSkyBlue), drawRect_command);
 
-			end_point_x = (DrawChart.SquareSize * num_cycles);
+			o_graphic.DrawString(s_content, DrawFont, DrawBrush, drawRect_command, DrawFormat);
+
+			end_point_x = i_width;
 		}
 		/// <summary>
 		/// Метод отрисовки системной шины в конвейере.
@@ -126,12 +132,32 @@ namespace CiclogramWriter.Core
 		/// <param name="num_cycles">Количество тактов</param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
+		/// <param name="f_op">F(оп)</param>
 		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
-		public void DrawSystemBusKK(Graphics o_graphic, int num_cycles, int point_x, int point_y, out int end_point_x)
+		public void DrawSystemBusKK(Graphics o_graphic, string s_content, int num_cycles, int point_x, int point_y, int f_op, out int end_point_x)
 		{
-			o_graphic.FillRectangle(new SolidBrush(Color.Chocolate), new Rectangle(point_x, point_y, DrawChart.SquareSize * num_cycles, DrawChart.SquareSize));
+			int i_width = DrawChart.SquareSize * 2 * num_cycles * f_op;
 
-			end_point_x = (DrawChart.SquareSize * num_cycles);
+			var drawRect_command = new Rectangle(point_x, point_y, i_width, DrawChart.SquareSize);
+			o_graphic.FillRectangle(new SolidBrush(Color.LightSkyBlue), drawRect_command);
+
+			o_graphic.DrawString(s_content, DrawFont, DrawBrush, drawRect_command, DrawFormat);
+
+			end_point_x = i_width;
+		}
+		/// <summary>
+		/// Метод отрисовки заявки
+		/// </summary>
+		/// <param name="o_graphic"></param>
+		/// <param name="s_content">Номер заявки</param>
+		/// <param name="point_x">Начальная точка Х </param>
+		/// <param name="point_y">Начальная точка У</param>
+		public void DrawRequest(Graphics o_graphic, string s_content, int point_x, int point_y)
+		{
+			var drawRect_command = new Rectangle(point_x, point_y - DrawChart.SquareSize * 2, DrawChart.SquareSize, DrawChart.SquareSize);
+			o_graphic.DrawString(s_content, DrawFont, DrawBrush, drawRect_command, DrawFormat);
+
+			o_graphic.DrawLine(new Pen(Color.Black), point_x, point_y - DrawChart.SquareSize, point_x, point_y - DrawChart.SquareSize * 2);
 		}
 	}
 }

@@ -31,6 +31,7 @@ namespace CiclogramWriter
 		{
 			this.sidebar_panel = new System.Windows.Forms.Panel();
 			this.settings_panel = new System.Windows.Forms.Panel();
+			this.btn_draw_chart = new System.Windows.Forms.Button();
 			this.gb_list_command = new System.Windows.Forms.GroupBox();
 			this.rt_list_command = new System.Windows.Forms.RichTextBox();
 			this.gb_settings = new System.Windows.Forms.GroupBox();
@@ -47,6 +48,7 @@ namespace CiclogramWriter
 			this.cb_in_cache = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.gb_pm = new System.Windows.Forms.GroupBox();
+			this.num_of_control = new System.Windows.Forms.NumericUpDown();
 			this.label6 = new System.Windows.Forms.Label();
 			this.label1 = new System.Windows.Forms.Label();
 			this.tb_num_pm = new System.Windows.Forms.TextBox();
@@ -54,8 +56,6 @@ namespace CiclogramWriter
 			this.btn_add_pm = new System.Windows.Forms.Button();
 			this.p_canvas = new System.Windows.Forms.Panel();
 			this.pb_canvas = new System.Windows.Forms.PictureBox();
-			this.num_of_control = new System.Windows.Forms.NumericUpDown();
-			this.btn_draw_chart = new System.Windows.Forms.Button();
 			this.sidebar_panel.SuspendLayout();
 			this.settings_panel.SuspendLayout();
 			this.gb_list_command.SuspendLayout();
@@ -63,9 +63,9 @@ namespace CiclogramWriter
 			this.gb_command_set.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.num_count_tact)).BeginInit();
 			this.gb_pm.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.num_of_control)).BeginInit();
 			this.p_canvas.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pb_canvas)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.num_of_control)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// sidebar_panel
@@ -89,6 +89,16 @@ namespace CiclogramWriter
 			this.settings_panel.Name = "settings_panel";
 			this.settings_panel.Size = new System.Drawing.Size(311, 805);
 			this.settings_panel.TabIndex = 0;
+			// 
+			// btn_draw_chart
+			// 
+			this.btn_draw_chart.Location = new System.Drawing.Point(11, 767);
+			this.btn_draw_chart.Name = "btn_draw_chart";
+			this.btn_draw_chart.Size = new System.Drawing.Size(287, 29);
+			this.btn_draw_chart.TabIndex = 4;
+			this.btn_draw_chart.Text = "Построить график";
+			this.btn_draw_chart.UseVisualStyleBackColor = true;
+			this.btn_draw_chart.Click += new System.EventHandler(this.btn_draw_chart_Click);
 			// 
 			// gb_list_command
 			// 
@@ -260,6 +270,28 @@ namespace CiclogramWriter
 			this.gb_pm.TabStop = false;
 			this.gb_pm.Text = "Микропроцессор";
 			// 
+			// num_of_control
+			// 
+			this.num_of_control.Location = new System.Drawing.Point(156, 46);
+			this.num_of_control.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+			this.num_of_control.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.num_of_control.Name = "num_of_control";
+			this.num_of_control.Size = new System.Drawing.Size(137, 27);
+			this.num_of_control.TabIndex = 6;
+			this.num_of_control.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			// 
 			// label6
 			// 
 			this.label6.AutoSize = true;
@@ -316,44 +348,13 @@ namespace CiclogramWriter
 			// 
 			// pb_canvas
 			// 
+			this.pb_canvas.BackColor = System.Drawing.SystemColors.ButtonFace;
 			this.pb_canvas.Location = new System.Drawing.Point(0, 0);
 			this.pb_canvas.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
 			this.pb_canvas.Name = "pb_canvas";
 			this.pb_canvas.Size = new System.Drawing.Size(956, 835);
 			this.pb_canvas.TabIndex = 0;
 			this.pb_canvas.TabStop = false;
-			// 
-			// num_of_control
-			// 
-			this.num_of_control.Location = new System.Drawing.Point(156, 46);
-			this.num_of_control.Maximum = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-			this.num_of_control.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			this.num_of_control.Name = "num_of_control";
-			this.num_of_control.Size = new System.Drawing.Size(137, 27);
-			this.num_of_control.TabIndex = 6;
-			this.num_of_control.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-			// 
-			// btn_draw_chart
-			// 
-			this.btn_draw_chart.Location = new System.Drawing.Point(11, 767);
-			this.btn_draw_chart.Name = "btn_draw_chart";
-			this.btn_draw_chart.Size = new System.Drawing.Size(287, 29);
-			this.btn_draw_chart.TabIndex = 4;
-			this.btn_draw_chart.Text = "Построить график";
-			this.btn_draw_chart.UseVisualStyleBackColor = true;
-			this.btn_draw_chart.Click += new System.EventHandler(this.btn_draw_chart_Click);
 			// 
 			// MainForm
 			// 
@@ -375,9 +376,9 @@ namespace CiclogramWriter
 			((System.ComponentModel.ISupportInitialize)(this.num_count_tact)).EndInit();
 			this.gb_pm.ResumeLayout(false);
 			this.gb_pm.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.num_of_control)).EndInit();
 			this.p_canvas.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.pb_canvas)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.num_of_control)).EndInit();
 			this.ResumeLayout(false);
 
 		}

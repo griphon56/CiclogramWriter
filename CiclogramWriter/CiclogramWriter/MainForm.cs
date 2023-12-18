@@ -230,7 +230,7 @@ namespace CiclogramWriter
 				int i_start_x_kn = 0;
 				int i_start_y_kn = 0;
 
-				int i_start_x_kk = 0;
+				//int i_start_x_kk = 0;
 				int i_start_y_kk = 0;
 
 				#region Контроллер и конвейер микропроцессора
@@ -256,6 +256,88 @@ namespace CiclogramWriter
 								i_start_x_kn += end_point_x;
 
 								o_draw.DrawMicroBusKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								o_command.ExecutionStatus = ExecutionStatus.Completed;
+
+								break;
+							}
+						case Enums.CommandType.Cache_MO:
+							{
+								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								var o_request = new Request()
+								{
+									Command = o_command,
+									Priority = 1
+								};
+
+								o_mp.RequestList.Add(o_request);
+								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+								o_draw.DrawSystemBusKN(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								break;
+							}
+						case Enums.CommandType.NotCache_False:
+							{
+								var o_request = new Request()
+								{
+									Command = o_command,
+									Priority = 1
+								};
+
+								o_mp.RequestList.Add(o_request);
+								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+								o_draw.DrawSystemBusKK(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								o_draw.DrawMicroBusKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								break;
+							}
+						case Enums.CommandType.NotCache_MO:
+							{
+								var o_request = new Request()
+								{
+									Command = o_command,
+									Priority = 1
+								};
+
+								o_mp.RequestList.Add(o_request);
+								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+								o_draw.DrawSystemBusKK(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
+
+								i_start_x_kn += end_point_x;
+
+								var o_request_2 = new Request()
+								{
+									Command = o_command,
+									Priority = 1
+								};
+
+								o_mp.RequestList.Add(o_request_2);
+								o_draw.DrawRequest(o_graphic, o_request_2.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+								o_draw.DrawSystemBusKN(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out end_point_x);
 
 								i_start_x_kn += end_point_x;
 
