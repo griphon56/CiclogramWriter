@@ -56,6 +56,7 @@ namespace CiclogramWriter
 			this.btn_add_pm = new System.Windows.Forms.Button();
 			this.p_canvas = new System.Windows.Forms.Panel();
 			this.pb_canvas = new System.Windows.Forms.PictureBox();
+			this.brn_gen = new System.Windows.Forms.Button();
 			this.sidebar_panel.SuspendLayout();
 			this.settings_panel.SuspendLayout();
 			this.gb_list_command.SuspendLayout();
@@ -186,6 +187,7 @@ namespace CiclogramWriter
 			// 
 			// gb_command_set
 			// 
+			this.gb_command_set.Controls.Add(this.brn_gen);
 			this.gb_command_set.Controls.Add(this.num_count_tact);
 			this.gb_command_set.Controls.Add(this.btn_add_command);
 			this.gb_command_set.Controls.Add(this.cb_yo);
@@ -220,7 +222,7 @@ namespace CiclogramWriter
 			// 
 			this.btn_add_command.Location = new System.Drawing.Point(6, 117);
 			this.btn_add_command.Name = "btn_add_command";
-			this.btn_add_command.Size = new System.Drawing.Size(288, 29);
+			this.btn_add_command.Size = new System.Drawing.Size(140, 29);
 			this.btn_add_command.TabIndex = 6;
 			this.btn_add_command.Text = "Добавить команду";
 			this.btn_add_command.UseVisualStyleBackColor = true;
@@ -339,11 +341,12 @@ namespace CiclogramWriter
 			// 
 			// p_canvas
 			// 
+			this.p_canvas.AutoScroll = true;
 			this.p_canvas.BackColor = System.Drawing.SystemColors.Info;
 			this.p_canvas.Controls.Add(this.pb_canvas);
 			this.p_canvas.Location = new System.Drawing.Point(336, 0);
 			this.p_canvas.Name = "p_canvas";
-			this.p_canvas.Size = new System.Drawing.Size(941, 835);
+			this.p_canvas.Size = new System.Drawing.Size(1121, 835);
 			this.p_canvas.TabIndex = 1;
 			// 
 			// pb_canvas
@@ -352,16 +355,27 @@ namespace CiclogramWriter
 			this.pb_canvas.Location = new System.Drawing.Point(0, 0);
 			this.pb_canvas.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
 			this.pb_canvas.Name = "pb_canvas";
-			this.pb_canvas.Size = new System.Drawing.Size(956, 835);
+			this.pb_canvas.Size = new System.Drawing.Size(2000, 814);
+			this.pb_canvas.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
 			this.pb_canvas.TabIndex = 0;
 			this.pb_canvas.TabStop = false;
+			// 
+			// brn_gen
+			// 
+			this.brn_gen.Location = new System.Drawing.Point(154, 117);
+			this.brn_gen.Name = "brn_gen";
+			this.brn_gen.Size = new System.Drawing.Size(139, 29);
+			this.brn_gen.TabIndex = 7;
+			this.brn_gen.Text = "Генерация";
+			this.brn_gen.UseVisualStyleBackColor = true;
+			this.brn_gen.Click += new System.EventHandler(this.brn_gen_Click);
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Window;
-			this.ClientSize = new System.Drawing.Size(1284, 837);
+			this.ClientSize = new System.Drawing.Size(1457, 837);
 			this.Controls.Add(this.p_canvas);
 			this.Controls.Add(this.sidebar_panel);
 			this.Name = "MainForm";
@@ -378,6 +392,7 @@ namespace CiclogramWriter
 			this.gb_pm.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.num_of_control)).EndInit();
 			this.p_canvas.ResumeLayout(false);
+			this.p_canvas.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pb_canvas)).EndInit();
 			this.ResumeLayout(false);
 
@@ -412,6 +427,7 @@ namespace CiclogramWriter
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.NumericUpDown num_of_control;
 		private System.Windows.Forms.Button btn_draw_chart;
+		private System.Windows.Forms.Button brn_gen;
 	}
 }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CiclogramWriter.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +20,9 @@ namespace CiclogramWriter.Core
 		/// Приоритет выполнения
 		/// </summary>
 		public int Priority { get; set; }
+		/// <summary>
+		/// Состояние выполнения команды
+		/// </summary>
+		public StateCommand StateCommand { get; set; }
 	}
 }

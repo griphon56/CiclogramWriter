@@ -30,7 +30,7 @@ namespace CiclogramWriter
 		private void btn_add_pm_Click(object sender, EventArgs e)
 		{
 			var a_id_mp = processor.MPList.Select(x => x.Id).ToList();
-			int id_mp = (a_id_mp!=null && a_id_mp.Count>0) ? a_id_mp.Max() + 1 : 1;
+			int id_mp = (a_id_mp != null && a_id_mp.Count > 0) ? a_id_mp.Max() + 1 : 1;
 			var o_mp_new = new Microprocessor()
 			{
 				Id = id_mp,
@@ -47,7 +47,7 @@ namespace CiclogramWriter
 		/// </summary>
 		private void btn_del_pm_Click(object sender, EventArgs e)
 		{
-			if(tb_num_pm.Text.Length > 0)
+			if (tb_num_pm.Text.Length > 0)
 			{
 				int id_mp = Int32.Parse(tb_num_pm.Text);
 				var o_mp_del = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();
@@ -76,7 +76,7 @@ namespace CiclogramWriter
 		/// </summary>
 		private void btn_add_command_Click(object sender, EventArgs e)
 		{
-			if(tb_num_pm.Text.Length == 0)
+			if (tb_num_pm.Text.Length == 0)
 			{
 				MessageBox.Show("Для добавления команды укажите номер микропроцессора.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
@@ -104,7 +104,7 @@ namespace CiclogramWriter
 			};
 
 			// Устанавливаем тип команды.
-			if(o_command.IsCached && !o_command.IsManagementOperation)
+			if (o_command.IsCached && !o_command.IsManagementOperation)
 			{
 				o_command.CommandType = Enums.CommandType.Cache_False;
 				o_command.Priority = 1;
@@ -225,7 +225,7 @@ namespace CiclogramWriter
 
 			o_draw.DrawGrid(o_graphic);
 
-			foreach(var o_mp in processor.MPList)
+			foreach (var o_mp in processor.MPList)
 			{
 				int i_start_x_kn = 0;
 				int i_start_y_kn = 0;
@@ -244,109 +244,177 @@ namespace CiclogramWriter
 				o_draw.StepIndentLine += o_draw.IndentLine;
 				#endregion
 
-				#region Команды
-				foreach (var o_command in o_mp.CommandList)
+				var a_temp_command = o_mp.CommandList;
+
+				while (true)
 				{
-					switch (o_command.CommandType)
+					if (o_mp.RequestList.Count > 0)
 					{
-						case Enums.CommandType.Cache_False:
-							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+						var o_temp_request = o_mp.RequestList[0];
 
-								i_start_x_kn += end_point_x;
-
-								o_draw.DrawMicroBusKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
-
-								i_start_x_kn += end_point_x;
-
-								o_command.ExecutionStatus = ExecutionStatus.Completed;
-
-								break;
-							}
-						case Enums.CommandType.Cache_MO:
-							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
-
-								i_start_x_kn += end_point_x;
-
-								var o_request = new Request()
+						switch (o_temp_request.Command.CommandType)
+						{
+							case Enums.CommandType.Cache_MO:
 								{
-									Command = o_command,
-									Priority = 1
-								};
+									o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out int end_point_x);
 
-								o_mp.RequestList.Add(o_request);
-								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_x_kn += end_point_x;
 
-								o_draw.DrawSystemBusKN(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out end_point_x);
+									o_mp.RequestList.Remove(o_temp_request);
+									a_temp_command.Remove(o_temp_request.Command);
 
-								i_start_x_kn += end_point_x;
-
-								break;
-							}
-						case Enums.CommandType.NotCache_False:
-							{
-								var o_request = new Request()
+									break;
+								}
+							case Enums.CommandType.NotCache_False:
 								{
-									Command = o_command,
-									Priority = 1
-								};
+									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
 
-								o_mp.RequestList.Add(o_request);
-								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_x_kn += end_point_x;
 
-								o_draw.DrawSystemBusKK(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
 
-								i_start_x_kn += end_point_x;
+									i_start_x_kn += end_point_x;
 
-								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
+									o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
 
-								i_start_x_kn += end_point_x;
+									i_start_x_kn += end_point_x;
 
-								o_draw.DrawMicroBusKN(o_graphic, o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+									o_mp.RequestList.Remove(o_temp_request);
+									a_temp_command.Remove(o_temp_request.Command);
 
-								i_start_x_kn += end_point_x;
-
-								break;
-							}
-						case Enums.CommandType.NotCache_MO:
-							{
-								var o_request = new Request()
+									break;
+								}
+							case Enums.CommandType.NotCache_MO:
 								{
-									Command = o_command,
-									Priority = 1
-								};
+									switch (o_temp_request.StateCommand)
+									{
+										case StateCommand.SystemBusKK:
+											{
+												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
 
-								o_mp.RequestList.Add(o_request);
-								o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+												i_start_x_kn += end_point_x;
 
-								o_draw.DrawSystemBusKK(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+												o_temp_request.StateCommand = StateCommand.Decode;
 
-								i_start_x_kn += end_point_x;
+												break;
+											}
+										case StateCommand.Decode:
+											{
+												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
 
-								o_draw.DrawCacheKN(o_graphic, $"{o_command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
+												i_start_x_kn += end_point_x;
 
-								i_start_x_kn += end_point_x;
+												var o_request = new Request()
+												{
+													Command = o_temp_request.Command,
+													Priority = 1,
+													StateCommand = StateCommand.SystemBusKN
+												};
 
-								var o_request_2 = new Request()
+												o_mp.RequestList.Add(o_request);
+												
+												o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+												o_mp.RequestList.Remove(o_temp_request);
+
+												break;
+											}
+										case StateCommand.SystemBusKN:
+											{
+												o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out int end_point_x);
+
+												i_start_x_kn += end_point_x;
+
+												o_mp.RequestList.Remove(o_temp_request);
+												a_temp_command.Remove(o_temp_request.Command);
+
+												break;
+											}
+									}
+
+									break;
+								}
+						}
+					}
+
+					if(a_temp_command.Count > 0)
+					{
+						var o_temp_command = a_temp_command[0];
+
+						switch (o_temp_command.CommandType)
+						{
+							case Enums.CommandType.Cache_False:
 								{
-									Command = o_command,
-									Priority = 1
-								};
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
 
-								o_mp.RequestList.Add(o_request_2);
-								o_draw.DrawRequest(o_graphic, o_request_2.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_x_kn += end_point_x;
 
-								o_draw.DrawSystemBusKN(o_graphic, $"{o_command.Id}", o_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out end_point_x);
+									o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
 
-								i_start_x_kn += end_point_x;
+									i_start_x_kn += end_point_x;
 
-								break;
-							}
+									a_temp_command.Remove(o_temp_command);
+
+									break;
+								}
+							case Enums.CommandType.Cache_MO:
+								{
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+									
+									i_start_x_kn += end_point_x;
+
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+									var o_request = new Request()
+									{
+										Command = o_temp_command,
+										Priority = 1,
+										StateCommand = StateCommand.SystemBusKN
+									};
+
+									o_mp.RequestList.Add(o_request);
+
+									break;
+								}
+							case Enums.CommandType.NotCache_False:
+								{
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+									var o_request = new Request()
+									{
+										Command = o_temp_command,
+										Priority = 1,
+										StateCommand = StateCommand.SystemBusKK
+									};
+
+									o_mp.RequestList.Add(o_request);
+
+									break;
+								}
+							case Enums.CommandType.NotCache_MO:
+								{
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+									var o_request = new Request()
+									{
+										Command = o_temp_command,
+										Priority = 1,
+										StateCommand = StateCommand.SystemBusKK
+									};
+
+									o_mp.RequestList.Add(o_request);
+									
+									break;
+								}
+						}
+					}
+
+					// Выходим из цикла, когда нет заявок и все команды выполнены
+					if (o_mp.RequestList.Count == 0 && a_temp_command.Count == 0)
+					{
+						break;
 					}
 				}
-
-				#endregion
 			}
 
 			pb_canvas.Image = o_bitm;
@@ -361,8 +429,118 @@ namespace CiclogramWriter
 				MessageBox.Show("Добавьте микропроцессор.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
 			}
-			
+
 			CreateChartCanvas();
+		}
+		/// <summary>
+		/// Метод автоматической генерации команд микропроцессора
+		/// </summary>
+		private void brn_gen_Click(object sender, EventArgs e)
+		{
+			if (processor.MPList.Count == 0)
+			{
+				MessageBox.Show("Добавьте микропроцессор.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			List<Command> a_gen_command = new List<Command>() {
+				new Command()
+				{
+					Id = 1,
+					CommandType = Enums.CommandType.NotCache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 2,
+					CommandType = Enums.CommandType.Cache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 3,
+					CommandType = Enums.CommandType.NotCache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 4,
+					CommandType = Enums.CommandType.NotCache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 5,
+					CommandType = Enums.CommandType.Cache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 6,
+					CommandType = Enums.CommandType.Cache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 7,
+					CommandType = Enums.CommandType.NotCache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 8,
+					CommandType = Enums.CommandType.NotCache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 9,
+					CommandType = Enums.CommandType.Cache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 10,
+					CommandType = Enums.CommandType.Cache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				}
+			};
+
+			int id_mp = Int32.Parse(tb_num_pm.Text);
+			var o_mp = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();
+			o_mp.CommandList.AddRange(a_gen_command);
+
+			UpdateListCommand_RichTB();
 		}
 	}
 }

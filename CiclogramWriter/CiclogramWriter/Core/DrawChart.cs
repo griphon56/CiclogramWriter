@@ -19,11 +19,11 @@ namespace CiclogramWriter.Core
 		/// <summary>
 		/// Ширина холста
 		/// </summary>
-		public int WidthCanvas { get; private set; } = 950;
+		public int WidthCanvas { get; private set; } = 2000;
 		/// <summary>
 		/// Высота холста
 		/// </summary>
-		public int HeightCanvas { get; private set; } = 850;
+		public int HeightCanvas { get; private set; } = 814;
 		/// <summary>
 		/// Отступ между основными линиями (Контроллер, конвейер)
 		/// </summary>
