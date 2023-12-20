@@ -227,14 +227,17 @@ namespace CiclogramWriter
 
 			foreach (var o_mp in processor.MPList)
 			{
-				int i_start_x_kn = 0;
+				//int i_start_x_kn = 0;
 				int i_start_y_kn = 0;
 
-				int i_start_x_kk = 0;
+				//int i_start_x_kk = 0;
 				int i_start_y_kk = 0;
 
 				int i_start_x_request = 0;
 				int i_start_y_request = 0;
+
+				int i_tact_kn = 0;
+				int i_tact_kk = 0;
 
 				#region Контроллер и конвейер микропроцессора
 				for (int i = 0; i < o_mp.NumberOfController; i++)
@@ -252,7 +255,16 @@ namespace CiclogramWriter
 				bool in_progress = true;
 				while (in_progress)
 				{
-					if (o_mp.RequestList.Count > 0)
+					// Выходим из цикла, когда нет заявок и все команды выполнены
+					if (o_mp.RequestList.Count == 0 && a_temp_command.Count == 0)
+					{
+						in_progress = false;
+					}
+
+					// Узнать колво тактов. сколько занято или нет
+
+					if ((o_mp.RequestList.Count > 0 && i_tact_kk >= i_tact_kn )
+						|| (a_temp_command.Count == 0 && o_mp.RequestList.Count > 0))
 					{
 						var o_temp_request = o_mp.RequestList[0];
 
@@ -260,32 +272,46 @@ namespace CiclogramWriter
 						{
 							case Enums.CommandType.Cache_MO:
 								{
-									o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out int end_point_x);
+									o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kn * DrawChart.SquareSize, i_start_y_kn, processor.Fsh);
 
-									i_start_x_kn += end_point_x;
+									i_tact_kn += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
 									o_mp.RequestList.Remove(o_temp_request);
-									a_temp_command.Remove(o_temp_request.Command);
 
 									break;
 								}
 							case Enums.CommandType.NotCache_False:
 								{
-									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kk, i_start_y_kk, processor.Fop, out int end_point_x);
+									switch (o_temp_request.StateCommand)
+									{
+										case StateCommand.SystemBusKK:
+											{
+												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kk * DrawChart.SquareSize, i_start_y_kk, processor.Fop);
 
-									i_start_x_kk += end_point_x;
+												i_tact_kk += o_temp_request.Command.NumberOfClockCycles * processor.Fop;
 
-									o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
+												o_temp_request.StateCommand = StateCommand.Decode;
 
-									i_start_x_kn += end_point_x;
+												break;
+											}
+										case StateCommand.Decode:
+											{
+												i_tact_kn = i_tact_kk;
 
-									o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
-									i_start_x_kn += end_point_x;
+												i_tact_kn += 1;
 
-									o_mp.RequestList.Remove(o_temp_request);
-									a_temp_command.Remove(o_temp_request.Command);
+												o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
+												i_tact_kn += o_temp_request.Command.NumberOfClockCycles;
+
+												o_mp.RequestList.Remove(o_temp_request);
+												
+												break;
+											}
+									}
+									
 									break;
 								}
 							case Enums.CommandType.NotCache_MO:
@@ -294,9 +320,9 @@ namespace CiclogramWriter
 									{
 										case StateCommand.SystemBusKK:
 											{
-												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kk, i_start_y_kk, processor.Fop, out int end_point_x);
+												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kk * DrawChart.SquareSize, i_start_y_kk, processor.Fop);
 
-												i_start_x_kk += end_point_x;
+												i_tact_kk += o_temp_request.Command.NumberOfClockCycles * processor.Fop;
 
 												o_temp_request.StateCommand = StateCommand.Decode;
 
@@ -304,9 +330,11 @@ namespace CiclogramWriter
 											}
 										case StateCommand.Decode:
 											{
-												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+												i_tact_kn = i_tact_kk;
 
-												i_start_x_kn += end_point_x;
+												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
+
+												i_tact_kn += 1;
 
 												var o_request = new Request()
 												{
@@ -316,8 +344,18 @@ namespace CiclogramWriter
 												};
 
 												o_mp.RequestList.Add(o_request);
-												
-												o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+
+												if (i_tact_kk <= i_tact_kn)
+												{
+													i_tact_kk = i_tact_kn;
+												}
+
+												i_start_y_request = (i_start_x_request == i_tact_kn * DrawChart.SquareSize)
+													? i_start_y_kn - DrawChart.SquareSize
+													: i_start_y_kn;
+
+												o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), i_tact_kn * DrawChart.SquareSize, i_start_y_request);
+												i_start_x_request = i_tact_kn * DrawChart.SquareSize;
 
 												o_mp.RequestList.Remove(o_temp_request);
 
@@ -325,12 +363,11 @@ namespace CiclogramWriter
 											}
 										case StateCommand.SystemBusKN:
 											{
-												o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, processor.Fsh, out int end_point_x);
+												o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kn * DrawChart.SquareSize, i_start_y_kn, processor.Fsh);
 
-												i_start_x_kn += end_point_x;
+												i_tact_kn += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
 												o_mp.RequestList.Remove(o_temp_request);
-												a_temp_command.Remove(o_temp_request.Command);
 
 												break;
 											}
@@ -349,13 +386,13 @@ namespace CiclogramWriter
 						{
 							case Enums.CommandType.Cache_False:
 								{
-									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
-									i_start_x_kn += end_point_x;
+									i_tact_kn += 1;
 
-									o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, i_start_x_kn, i_start_y_kn, out end_point_x);
+									o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
-									i_start_x_kn += end_point_x;
+									i_tact_kn += o_temp_command.NumberOfClockCycles;
 
 									a_temp_command.Remove(o_temp_command);
 
@@ -363,11 +400,17 @@ namespace CiclogramWriter
 								}
 							case Enums.CommandType.Cache_MO:
 								{
-									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_start_x_kn, i_start_y_kn, out int end_point_x);
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 									
-									i_start_x_kn += end_point_x;
+									i_tact_kn += 1;
 
-									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_y_request = (o_mp.RequestList.Count > 0 && i_start_x_request == i_tact_kn * DrawChart.SquareSize)
+										? i_start_y_kn - DrawChart.SquareSize
+										: i_start_y_kn;
+
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_tact_kn * DrawChart.SquareSize, i_start_y_request);
+
+									i_start_x_request = i_tact_kn * DrawChart.SquareSize;
 
 									var o_request = new Request()
 									{
@@ -377,13 +420,25 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
+
+									if (i_tact_kk <= i_tact_kn)
+									{
+										i_tact_kk = i_tact_kn;
+									}
+
 									a_temp_command.Remove(o_temp_command);
 
 									break;
 								}
 							case Enums.CommandType.NotCache_False:
 								{
-									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_y_request = (o_mp.RequestList.Count > 0 && i_start_x_request == i_tact_kn * DrawChart.SquareSize)
+										? i_start_y_kn - DrawChart.SquareSize
+										: i_start_y_kn;
+
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_tact_kn * DrawChart.SquareSize, i_start_y_request);
+
+									i_start_x_request = i_tact_kn * DrawChart.SquareSize;
 
 									var o_request = new Request()
 									{
@@ -393,13 +448,25 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
+
+									if (i_tact_kk <= i_tact_kn)
+									{
+										i_tact_kk = i_tact_kn;
+									}
+
 									a_temp_command.Remove(o_temp_command);
 
 									break;
 								}
 							case Enums.CommandType.NotCache_MO:
 								{
-									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_start_x_kn, i_start_y_kn);
+									i_start_y_request = (o_mp.RequestList.Count > 0 && i_start_x_request == i_tact_kn * DrawChart.SquareSize)
+										? i_start_y_kn - DrawChart.SquareSize
+										: i_start_y_kn;
+
+									o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), i_tact_kn * DrawChart.SquareSize, i_start_y_request);
+
+									i_start_x_request = i_tact_kn * DrawChart.SquareSize;
 
 									var o_request = new Request()
 									{
@@ -409,17 +476,17 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
+
+									if (i_tact_kk <= i_tact_kn)
+									{
+										i_tact_kk = i_tact_kn;
+									}
+
 									a_temp_command.Remove(o_temp_command);
 
 									break;
 								}
 						}
-					}
-
-					// Выходим из цикла, когда нет заявок и все команды выполнены
-					if (o_mp.RequestList.Count == 0 && a_temp_command.Count == 0)
-					{
-						in_progress = false;
 					}
 				}
 			}
@@ -454,94 +521,125 @@ namespace CiclogramWriter
 				new Command()
 				{
 					Id = 1,
-					CommandType = Enums.CommandType.NotCache_MO,
+					CommandType = Enums.CommandType.Cache_False,
 					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
+					IsCached = true,
+					IsManagementOperation = false,
 					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
 					Id = 2,
-					CommandType = Enums.CommandType.Cache_False,
+					CommandType = Enums.CommandType.NotCache_False,
 					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
+					IsCached = false,
 					IsManagementOperation = false,
-					NumberOfClockCycles = 2,
+					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
 					Id = 3,
-					CommandType = Enums.CommandType.NotCache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 4,
-					CommandType = Enums.CommandType.NotCache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 5,
 					CommandType = Enums.CommandType.Cache_MO,
 					ExecutionStatus = ExecutionStatus.Inactive,
 					IsCached = true,
 					IsManagementOperation = true,
 					NumberOfClockCycles = 1,
 				},
-				new Command()
-				{
-					Id = 6,
-					CommandType = Enums.CommandType.Cache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 7,
-					CommandType = Enums.CommandType.NotCache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 8,
-					CommandType = Enums.CommandType.NotCache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 9,
-					CommandType = Enums.CommandType.Cache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 10,
-					CommandType = Enums.CommandType.Cache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
-				}
+				
 			};
+
+			//List<Command> a_gen_command = new List<Command>() {
+			//	new Command()
+			//	{
+			//		Id = 1,
+			//		CommandType = Enums.CommandType.NotCache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 2,
+			//		CommandType = Enums.CommandType.Cache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 2,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 3,
+			//		CommandType = Enums.CommandType.NotCache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 4,
+			//		CommandType = Enums.CommandType.NotCache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 2,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 5,
+			//		CommandType = Enums.CommandType.Cache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 6,
+			//		CommandType = Enums.CommandType.Cache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 2,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 7,
+			//		CommandType = Enums.CommandType.NotCache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 8,
+			//		CommandType = Enums.CommandType.NotCache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 9,
+			//		CommandType = Enums.CommandType.Cache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 2,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 10,
+			//		CommandType = Enums.CommandType.Cache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 1,
+			//	}
+			//};
 
 			int id_mp = Int32.Parse(tb_num_pm.Text);
 			var o_mp = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();
