@@ -230,8 +230,11 @@ namespace CiclogramWriter
 				int i_start_x_kn = 0;
 				int i_start_y_kn = 0;
 
-				//int i_start_x_kk = 0;
+				int i_start_x_kk = 0;
 				int i_start_y_kk = 0;
+
+				int i_start_x_request = 0;
+				int i_start_y_request = 0;
 
 				#region Контроллер и конвейер микропроцессора
 				for (int i = 0; i < o_mp.NumberOfController; i++)
@@ -246,7 +249,8 @@ namespace CiclogramWriter
 
 				var a_temp_command = o_mp.CommandList;
 
-				while (true)
+				bool in_progress = true;
+				while (in_progress)
 				{
 					if (o_mp.RequestList.Count > 0)
 					{
@@ -267,9 +271,9 @@ namespace CiclogramWriter
 								}
 							case Enums.CommandType.NotCache_False:
 								{
-									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kk, i_start_y_kk, processor.Fop, out int end_point_x);
 
-									i_start_x_kn += end_point_x;
+									i_start_x_kk += end_point_x;
 
 									o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_start_x_kn, i_start_y_kn, out end_point_x);
 
@@ -290,9 +294,9 @@ namespace CiclogramWriter
 									{
 										case StateCommand.SystemBusKK:
 											{
-												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kn, i_start_y_kk, processor.Fop, out int end_point_x);
+												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_start_x_kk, i_start_y_kk, processor.Fop, out int end_point_x);
 
-												i_start_x_kn += end_point_x;
+												i_start_x_kk += end_point_x;
 
 												o_temp_request.StateCommand = StateCommand.Decode;
 
@@ -373,6 +377,7 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
+									a_temp_command.Remove(o_temp_command);
 
 									break;
 								}
@@ -388,6 +393,7 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
+									a_temp_command.Remove(o_temp_command);
 
 									break;
 								}
@@ -403,7 +409,8 @@ namespace CiclogramWriter
 									};
 
 									o_mp.RequestList.Add(o_request);
-									
+									a_temp_command.Remove(o_temp_command);
+
 									break;
 								}
 						}
@@ -412,7 +419,7 @@ namespace CiclogramWriter
 					// Выходим из цикла, когда нет заявок и все команды выполнены
 					if (o_mp.RequestList.Count == 0 && a_temp_command.Count == 0)
 					{
-						break;
+						in_progress = false;
 					}
 				}
 			}
