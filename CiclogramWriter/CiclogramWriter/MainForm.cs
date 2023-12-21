@@ -263,8 +263,7 @@ namespace CiclogramWriter
 
 					// Узнать колво тактов. сколько занято или нет
 
-					if ((o_mp.RequestList.Count > 0 && i_tact_kk >= i_tact_kn )
-						|| (a_temp_command.Count == 0 && o_mp.RequestList.Count > 0))
+					if (o_mp.RequestList.Count > 0)
 					{
 						var o_temp_request = o_mp.RequestList[0];
 
@@ -288,7 +287,7 @@ namespace CiclogramWriter
 											{
 												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kk * DrawChart.SquareSize, i_start_y_kk, processor.Fop);
 
-												i_tact_kk += o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+												i_tact_kk += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
 
 												o_temp_request.StateCommand = StateCommand.Decode;
 
@@ -322,7 +321,7 @@ namespace CiclogramWriter
 											{
 												o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, i_tact_kk * DrawChart.SquareSize, i_start_y_kk, processor.Fop);
 
-												i_tact_kk += o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+												i_tact_kk += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
 
 												o_temp_request.StateCommand = StateCommand.Decode;
 
@@ -517,19 +516,59 @@ namespace CiclogramWriter
 				return;
 			}
 
+			//List<Command> a_gen_command = new List<Command>() {
+			//	new Command()
+			//	{
+			//		Id = 1,
+			//		CommandType = Enums.CommandType.Cache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 2,
+			//		CommandType = Enums.CommandType.NotCache_False,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = false,
+			//		IsManagementOperation = false,
+			//		NumberOfClockCycles = 1,
+			//	},
+			//	new Command()
+			//	{
+			//		Id = 3,
+			//		CommandType = Enums.CommandType.Cache_MO,
+			//		ExecutionStatus = ExecutionStatus.Inactive,
+			//		IsCached = true,
+			//		IsManagementOperation = true,
+			//		NumberOfClockCycles = 1,
+			//	},
+
+			//};
+
 			List<Command> a_gen_command = new List<Command>() {
 				new Command()
 				{
 					Id = 1,
-					CommandType = Enums.CommandType.Cache_False,
+					CommandType = Enums.CommandType.NotCache_MO,
 					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = false,
+					IsCached = false,
+					IsManagementOperation = true,
 					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
 					Id = 2,
+					CommandType = Enums.CommandType.Cache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 3,
 					CommandType = Enums.CommandType.NotCache_False,
 					ExecutionStatus = ExecutionStatus.Inactive,
 					IsCached = false,
@@ -538,108 +577,68 @@ namespace CiclogramWriter
 				},
 				new Command()
 				{
-					Id = 3,
+					Id = 4,
+					CommandType = Enums.CommandType.NotCache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 5,
 					CommandType = Enums.CommandType.Cache_MO,
 					ExecutionStatus = ExecutionStatus.Inactive,
 					IsCached = true,
 					IsManagementOperation = true,
 					NumberOfClockCycles = 1,
 				},
-				
+				new Command()
+				{
+					Id = 6,
+					CommandType = Enums.CommandType.Cache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 7,
+					CommandType = Enums.CommandType.NotCache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 8,
+					CommandType = Enums.CommandType.NotCache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = false,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 9,
+					CommandType = Enums.CommandType.Cache_False,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = false,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 10,
+					CommandType = Enums.CommandType.Cache_MO,
+					ExecutionStatus = ExecutionStatus.Inactive,
+					IsCached = true,
+					IsManagementOperation = true,
+					NumberOfClockCycles = 1,
+				}
 			};
-
-			//List<Command> a_gen_command = new List<Command>() {
-			//	new Command()
-			//	{
-			//		Id = 1,
-			//		CommandType = Enums.CommandType.NotCache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 2,
-			//		CommandType = Enums.CommandType.Cache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 2,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 3,
-			//		CommandType = Enums.CommandType.NotCache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 4,
-			//		CommandType = Enums.CommandType.NotCache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 2,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 5,
-			//		CommandType = Enums.CommandType.Cache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 6,
-			//		CommandType = Enums.CommandType.Cache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 2,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 7,
-			//		CommandType = Enums.CommandType.NotCache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 8,
-			//		CommandType = Enums.CommandType.NotCache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 9,
-			//		CommandType = Enums.CommandType.Cache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 2,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 10,
-			//		CommandType = Enums.CommandType.Cache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 1,
-			//	}
-			//};
 
 			int id_mp = Int32.Parse(tb_num_pm.Text);
 			var o_mp = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();
