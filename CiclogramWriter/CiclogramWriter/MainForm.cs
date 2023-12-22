@@ -380,7 +380,22 @@ namespace CiclogramWriter
 					if(a_temp_command.Count > 0)
 					{
 						var o_temp_command = a_temp_command[0];
+						if (i_tact_kk > i_tact_kn)
+						{
+							int i_diff_tact = i_tact_kk - i_tact_kn;
+							var a_command_next = a_temp_command.OrderBy(x => x.Id).Skip(0).Take(i_diff_tact)
+								.Where(x => x.CommandType == Enums.CommandType.Cache_False || x.CommandType == Enums.CommandType.Cache_MO).ToList();
 
+							if(a_command_next.Count == 0)
+							{
+								o_temp_command = a_temp_command[0];
+							}
+							else
+							{
+								o_temp_command = a_command_next[0];
+							}
+						}
+						
 						switch (o_temp_command.CommandType)
 						{
 							case Enums.CommandType.Cache_False:
