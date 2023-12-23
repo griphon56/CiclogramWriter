@@ -33,7 +33,7 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public int StepIndentLine { get; set; } = SquareSize * 5;
 
-		private Font DrawFont { get; set; } = new Font("Calibri", 10);
+		private Font DrawFont { get; set; } = new Font("Calibri", 8);
 		private SolidBrush DrawBrush { get; set; } = new SolidBrush(Color.Black);
 		private StringFormat DrawFormat { get; set; }  = new StringFormat();
 

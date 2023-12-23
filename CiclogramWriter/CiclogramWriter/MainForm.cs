@@ -239,6 +239,10 @@ namespace CiclogramWriter
 				int i_tact_kn = 0;
 				int i_tact_kk = 0;
 
+				int i_tact_time = 0;
+
+				int i_count = 0;
+
 				#region Контроллер и конвейер микропроцессора
 				for (int i = 0; i < o_mp.NumberOfController; i++)
 				{
@@ -252,6 +256,9 @@ namespace CiclogramWriter
 
 				var a_temp_command = o_mp.CommandList;
 
+				// Флаг - свободна системная шина конвейера
+				bool is_free = true;
+
 				bool in_progress = true;
 				while (in_progress)
 				{
@@ -261,11 +268,18 @@ namespace CiclogramWriter
 						in_progress = false;
 					}
 
-					// Узнать колво тактов. сколько занято или нет
-
-					if (o_mp.RequestList.Count > 0)
+					if (o_mp.RequestList.Count > 0 && is_free)
 					{
+						// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
+						var a_request_priority = o_mp.RequestList
+							.Where(x => x.Command.CommandType == Enums.CommandType.Cache_MO
+							|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN)).OrderBy(x=> x.Command.Id).ToList();
+
 						var o_temp_request = o_mp.RequestList[0];
+						if (a_request_priority.Count > 0)
+						{
+							o_temp_request = a_request_priority[0];
+						}
 
 						switch (o_temp_request.Command.CommandType)
 						{
@@ -275,7 +289,11 @@ namespace CiclogramWriter
 
 									i_tact_kn += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
+									i_tact_kk = i_tact_kn;
+
 									o_mp.RequestList.Remove(o_temp_request);
+
+									i_tact_time = i_tact_kn;
 
 									break;
 								}
@@ -295,8 +313,6 @@ namespace CiclogramWriter
 											}
 										case StateCommand.Decode:
 											{
-												i_tact_kn = i_tact_kk;
-
 												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
 												i_tact_kn += 1;
@@ -306,7 +322,9 @@ namespace CiclogramWriter
 												i_tact_kn += o_temp_request.Command.NumberOfClockCycles;
 
 												o_mp.RequestList.Remove(o_temp_request);
-												
+
+												i_tact_time = i_tact_kn;
+
 												break;
 											}
 									}
@@ -329,8 +347,6 @@ namespace CiclogramWriter
 											}
 										case StateCommand.Decode:
 											{
-												i_tact_kn = i_tact_kk;
-
 												o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 
 												i_tact_kn += 1;
@@ -344,11 +360,6 @@ namespace CiclogramWriter
 
 												o_mp.RequestList.Add(o_request);
 
-												if (i_tact_kk <= i_tact_kn)
-												{
-													i_tact_kk = i_tact_kn;
-												}
-
 												i_start_y_request = (i_start_x_request == i_tact_kn * DrawChart.SquareSize)
 													? i_start_y_kn - DrawChart.SquareSize
 													: i_start_y_kn;
@@ -357,6 +368,8 @@ namespace CiclogramWriter
 												i_start_x_request = i_tact_kn * DrawChart.SquareSize;
 
 												o_mp.RequestList.Remove(o_temp_request);
+
+												i_tact_time = i_tact_kn;
 
 												break;
 											}
@@ -367,6 +380,10 @@ namespace CiclogramWriter
 												i_tact_kn += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
 												o_mp.RequestList.Remove(o_temp_request);
+
+												i_tact_kk = i_tact_kn;
+
+												i_tact_time = i_tact_kn;
 
 												break;
 											}
@@ -380,21 +397,6 @@ namespace CiclogramWriter
 					if(a_temp_command.Count > 0)
 					{
 						var o_temp_command = a_temp_command[0];
-						if (i_tact_kk > i_tact_kn)
-						{
-							int i_diff_tact = i_tact_kk - i_tact_kn;
-							var a_command_next = a_temp_command.OrderBy(x => x.Id).Skip(0).Take(i_diff_tact)
-								.Where(x => x.CommandType == Enums.CommandType.Cache_False || x.CommandType == Enums.CommandType.Cache_MO).ToList();
-
-							if(a_command_next.Count == 0)
-							{
-								o_temp_command = a_temp_command[0];
-							}
-							else
-							{
-								o_temp_command = a_command_next[0];
-							}
-						}
 						
 						switch (o_temp_command.CommandType)
 						{
@@ -410,6 +412,11 @@ namespace CiclogramWriter
 
 									a_temp_command.Remove(o_temp_command);
 
+									if (is_free)
+									{
+										i_tact_time = i_tact_kn;
+									}
+
 									break;
 								}
 							case Enums.CommandType.Cache_MO:
@@ -417,7 +424,7 @@ namespace CiclogramWriter
 									o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", i_tact_kn * DrawChart.SquareSize, i_start_y_kn);
 									
 									i_tact_kn += 1;
-
+																		
 									i_start_y_request = (o_mp.RequestList.Count > 0 && i_start_x_request == i_tact_kn * DrawChart.SquareSize)
 										? i_start_y_kn - DrawChart.SquareSize
 										: i_start_y_kn;
@@ -435,12 +442,17 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Add(o_request);
 
-									if (i_tact_kk <= i_tact_kn)
+									if (i_tact_kk <= i_tact_kn && i_count==0)
 									{
 										i_tact_kk = i_tact_kn;
 									}
 
 									a_temp_command.Remove(o_temp_command);
+
+									if (is_free)
+									{
+										i_tact_time = i_tact_kn;
+									}
 
 									break;
 								}
@@ -463,7 +475,7 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Add(o_request);
 
-									if (i_tact_kk <= i_tact_kn)
+									if (i_tact_kk <= i_tact_kn && i_count==0)
 									{
 										i_tact_kk = i_tact_kn;
 									}
@@ -491,7 +503,7 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Add(o_request);
 
-									if (i_tact_kk <= i_tact_kn)
+									if (i_tact_kk <= i_tact_kn && i_count==0)
 									{
 										i_tact_kk = i_tact_kn;
 									}
@@ -502,6 +514,23 @@ namespace CiclogramWriter
 								}
 						}
 					}
+
+					if (i_tact_kk > i_tact_time)
+					{
+						is_free = false;
+						i_tact_time++;
+					}
+					else
+					{
+						is_free = true;
+
+						if (i_tact_time > i_tact_kn)
+						{
+							i_tact_kn = i_tact_time;
+						}
+					}
+
+					i_count++;
 				}
 			}
 
@@ -558,8 +587,7 @@ namespace CiclogramWriter
 			//		IsCached = true,
 			//		IsManagementOperation = true,
 			//		NumberOfClockCycles = 1,
-			//	},
-
+			//	}
 			//};
 
 			List<Command> a_gen_command = new List<Command>() {
