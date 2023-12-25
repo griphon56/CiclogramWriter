@@ -17,10 +17,6 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public Command Command { get; set; }
 		/// <summary>
-		/// Приоритет выполнения
-		/// </summary>
-		public int Priority { get; set; }
-		/// <summary>
 		/// Состояние выполнения команды
 		/// </summary>
 		public StateCommand StateCommand { get; set; }

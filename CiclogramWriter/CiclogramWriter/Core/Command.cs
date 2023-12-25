@@ -13,26 +13,9 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public int Id { get; set; }
 		/// <summary>
-		/// Выполнение в кеше
-		/// </summary>
-		public bool IsCached { get; set; }
-		/// <summary>
-		/// Выполнение управляющей операции
-		/// </summary>
-		public bool IsManagementOperation { get; set; }
-		/// <summary>
 		/// Количество тактов
 		/// </summary>
 		public int NumberOfClockCycles { get; set; }
-		/// <summary>
-		/// Приоритет выполнения.
-		/// Высокий приоритет = 1.
-		/// </summary>
-		public int Priority { get; set; }
-		/// <summary>
-		/// Статус выполнения
-		/// </summary>
-		public ExecutionStatus ExecutionStatus { get; set; }
 		/// <summary>
 		/// Тип команды
 		/// </summary>

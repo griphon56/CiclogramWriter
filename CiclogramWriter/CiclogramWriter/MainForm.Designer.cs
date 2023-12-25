@@ -42,6 +42,7 @@ namespace CiclogramWriter
 			this.tb_mp_sh = new System.Windows.Forms.TextBox();
 			this.label3 = new System.Windows.Forms.Label();
 			this.gb_command_set = new System.Windows.Forms.GroupBox();
+			this.brn_gen = new System.Windows.Forms.Button();
 			this.num_count_tact = new System.Windows.Forms.NumericUpDown();
 			this.btn_add_command = new System.Windows.Forms.Button();
 			this.cb_yo = new System.Windows.Forms.CheckBox();
@@ -56,7 +57,6 @@ namespace CiclogramWriter
 			this.btn_add_pm = new System.Windows.Forms.Button();
 			this.p_canvas = new System.Windows.Forms.Panel();
 			this.pb_canvas = new System.Windows.Forms.PictureBox();
-			this.brn_gen = new System.Windows.Forms.Button();
 			this.sidebar_panel.SuspendLayout();
 			this.settings_panel.SuspendLayout();
 			this.gb_list_command.SuspendLayout();
@@ -199,6 +199,16 @@ namespace CiclogramWriter
 			this.gb_command_set.TabIndex = 1;
 			this.gb_command_set.TabStop = false;
 			this.gb_command_set.Text = "Настройка команд";
+			// 
+			// brn_gen
+			// 
+			this.brn_gen.Location = new System.Drawing.Point(154, 117);
+			this.brn_gen.Name = "brn_gen";
+			this.brn_gen.Size = new System.Drawing.Size(139, 29);
+			this.brn_gen.TabIndex = 7;
+			this.brn_gen.Text = "Генерация";
+			this.brn_gen.UseVisualStyleBackColor = true;
+			this.brn_gen.Click += new System.EventHandler(this.brn_gen_Click);
 			// 
 			// num_count_tact
 			// 
@@ -360,16 +370,6 @@ namespace CiclogramWriter
 			this.pb_canvas.TabIndex = 0;
 			this.pb_canvas.TabStop = false;
 			// 
-			// brn_gen
-			// 
-			this.brn_gen.Location = new System.Drawing.Point(154, 117);
-			this.brn_gen.Name = "brn_gen";
-			this.brn_gen.Size = new System.Drawing.Size(139, 29);
-			this.brn_gen.TabIndex = 7;
-			this.brn_gen.Text = "Генерация";
-			this.brn_gen.UseVisualStyleBackColor = true;
-			this.brn_gen.Click += new System.EventHandler(this.brn_gen_Click);
-			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -378,6 +378,10 @@ namespace CiclogramWriter
 			this.ClientSize = new System.Drawing.Size(1457, 837);
 			this.Controls.Add(this.p_canvas);
 			this.Controls.Add(this.sidebar_panel);
+			this.MaximizeBox = false;
+			this.MaximumSize = new System.Drawing.Size(1475, 884);
+			this.MinimizeBox = false;
+			this.MinimumSize = new System.Drawing.Size(1475, 884);
 			this.Name = "MainForm";
 			this.Text = "CiclogramWriter";
 			this.sidebar_panel.ResumeLayout(false);

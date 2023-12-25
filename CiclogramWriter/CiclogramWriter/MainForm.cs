@@ -96,33 +96,25 @@ namespace CiclogramWriter
 			var o_command = new Command()
 			{
 				Id = id_command,
-				ExecutionStatus = ExecutionStatus.Inactive,
-				IsCached = cb_in_cache.Checked,
-				IsManagementOperation = cb_yo.Checked,
-				NumberOfClockCycles = (int)num_count_tact.Value,
-				Priority = 1
+				NumberOfClockCycles = (int)num_count_tact.Value
 			};
 
 			// Устанавливаем тип команды.
-			if (o_command.IsCached && !o_command.IsManagementOperation)
+			if (cb_in_cache.Checked && !cb_yo.Checked)
 			{
 				o_command.CommandType = Enums.CommandType.Cache_False;
-				o_command.Priority = 1;
 			}
-			else if (o_command.IsCached && o_command.IsManagementOperation)
+			else if (cb_in_cache.Checked && cb_yo.Checked)
 			{
 				o_command.CommandType = Enums.CommandType.Cache_MO;
-				o_command.Priority = 1;
 			}
-			else if (!o_command.IsCached && !o_command.IsManagementOperation)
+			else if (!cb_in_cache.Checked && !cb_yo.Checked)
 			{
 				o_command.CommandType = Enums.CommandType.NotCache_False;
-				o_command.Priority = 1;
 			}
-			else if (!o_command.IsCached && o_command.IsManagementOperation)
+			else if (!cb_in_cache.Checked && cb_yo.Checked)
 			{
 				o_command.CommandType = Enums.CommandType.NotCache_MO;
-				o_command.Priority = 2;
 			}
 
 			o_mp.CommandList.Add(o_command);
@@ -227,18 +219,20 @@ namespace CiclogramWriter
 
 			foreach (var o_mp in processor.MPList)
 			{
-				//int i_start_x_kn = 0;
+				// Позиция пикселей по оси Y для отрисовки команд в контроллере
 				int i_start_y_kn = 0;
-
-				//int i_start_x_kk = 0;
+				// Позиция пикселей по оси Y для отрисовки команд в конвейере
 				int i_start_y_kk = 0;
 
+				// Позиция пикселей по оси X,Y для отрисовки заявок в контроллере
 				int i_start_x_request = 0;
 				int i_start_y_request = 0;
 
+				// Кол-во тактов прошедших в контроллере
 				int i_tact_kn = 0;
+				// Кол-во тактов прошедших в конвейере
 				int i_tact_kk = 0;
-
+				// Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)
 				int i_tact_time = 0;
 
 				int i_count = 0;
@@ -268,6 +262,7 @@ namespace CiclogramWriter
 						in_progress = false;
 					}
 
+					// Выбираем заявки
 					if (o_mp.RequestList.Count > 0 && is_free)
 					{
 						// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
@@ -354,7 +349,6 @@ namespace CiclogramWriter
 												var o_request = new Request()
 												{
 													Command = o_temp_request.Command,
-													Priority = 1,
 													StateCommand = StateCommand.SystemBusKN
 												};
 
@@ -394,6 +388,7 @@ namespace CiclogramWriter
 						}
 					}
 
+					// Выбираем команды
 					if(a_temp_command.Count > 0)
 					{
 						var o_temp_command = a_temp_command[0];
@@ -436,7 +431,6 @@ namespace CiclogramWriter
 									var o_request = new Request()
 									{
 										Command = o_temp_command,
-										Priority = 1,
 										StateCommand = StateCommand.SystemBusKN
 									};
 
@@ -469,7 +463,6 @@ namespace CiclogramWriter
 									var o_request = new Request()
 									{
 										Command = o_temp_command,
-										Priority = 1,
 										StateCommand = StateCommand.SystemBusKK
 									};
 
@@ -497,7 +490,6 @@ namespace CiclogramWriter
 									var o_request = new Request()
 									{
 										Command = o_temp_command,
-										Priority = 1,
 										StateCommand = StateCommand.SystemBusKK
 									};
 
@@ -515,6 +507,7 @@ namespace CiclogramWriter
 						}
 					}
 
+					// Проверряем занята ли системная шина
 					if (i_tact_kk > i_tact_time)
 					{
 						is_free = false;
@@ -560,128 +553,42 @@ namespace CiclogramWriter
 				return;
 			}
 
-			//List<Command> a_gen_command = new List<Command>() {
-			//	new Command()
-			//	{
-			//		Id = 1,
-			//		CommandType = Enums.CommandType.Cache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 2,
-			//		CommandType = Enums.CommandType.NotCache_False,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = false,
-			//		IsManagementOperation = false,
-			//		NumberOfClockCycles = 1,
-			//	},
-			//	new Command()
-			//	{
-			//		Id = 3,
-			//		CommandType = Enums.CommandType.Cache_MO,
-			//		ExecutionStatus = ExecutionStatus.Inactive,
-			//		IsCached = true,
-			//		IsManagementOperation = true,
-			//		NumberOfClockCycles = 1,
-			//	}
-			//};
+			List<Command> a_gen_command = new List<Command>();
 
-			List<Command> a_gen_command = new List<Command>() {
-				new Command()
+			for (int i = 0; i < 100; i++)
+			{
+				var o_command = new Command()
 				{
-					Id = 1,
-					CommandType = Enums.CommandType.NotCache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
+					Id = (i + 1),
+					NumberOfClockCycles = new Random().Next(1,5)
+				};
+
+				switch(new Random().Next(1, 4))
 				{
-					Id = 2,
-					CommandType = Enums.CommandType.Cache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 3,
-					CommandType = Enums.CommandType.NotCache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 4,
-					CommandType = Enums.CommandType.NotCache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 5,
-					CommandType = Enums.CommandType.Cache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 6,
-					CommandType = Enums.CommandType.Cache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 7,
-					CommandType = Enums.CommandType.NotCache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 8,
-					CommandType = Enums.CommandType.NotCache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = false,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
-				},
-				new Command()
-				{
-					Id = 9,
-					CommandType = Enums.CommandType.Cache_False,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = false,
-					NumberOfClockCycles = 2,
-				},
-				new Command()
-				{
-					Id = 10,
-					CommandType = Enums.CommandType.Cache_MO,
-					ExecutionStatus = ExecutionStatus.Inactive,
-					IsCached = true,
-					IsManagementOperation = true,
-					NumberOfClockCycles = 1,
+					case 1:
+						{
+							o_command.CommandType = Enums.CommandType.Cache_False;
+							break;
+						}
+					case 2:
+						{
+							o_command.CommandType = Enums.CommandType.Cache_MO;
+							break;
+						}
+					case 3:
+						{
+							o_command.CommandType = Enums.CommandType.NotCache_False;
+							break;
+						}
+					case 4:
+						{
+							o_command.CommandType = Enums.CommandType.NotCache_MO;
+							break;
+						}
 				}
-			};
+
+				a_gen_command.Add(o_command);
+			}
 
 			int id_mp = Int32.Parse(tb_num_pm.Text);
 			var o_mp = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();

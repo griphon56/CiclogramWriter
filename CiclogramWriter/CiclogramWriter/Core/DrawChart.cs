@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace CiclogramWriter.Core
 {
@@ -19,7 +14,7 @@ namespace CiclogramWriter.Core
 		/// <summary>
 		/// Ширина холста
 		/// </summary>
-		public int WidthCanvas { get; private set; } = 2000;
+		public int WidthCanvas { get; private set; } = 10000;
 		/// <summary>
 		/// Высота холста
 		/// </summary>
@@ -45,7 +40,7 @@ namespace CiclogramWriter.Core
 		{
 			// Вертикальные линии
 			int step = 0;
-			for (int i = 0; i < 100; i++)
+			for (int i = 0; i < 1000; i++)
 			{
 				o_graphic.DrawLine(new Pen(Color.Silver), step, 0, step, this.HeightCanvas);
 				step += SquareSize;
