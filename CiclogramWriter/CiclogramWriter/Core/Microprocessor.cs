@@ -20,9 +20,13 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public List<Request> RequestList { get; set; } = new List<Request>();
 		/// <summary>
-		/// Прямой доступ к памяти (англ. direct memory access, DMA)
+		/// Вектор отображения контроллера
 		/// </summary>
-		public bool NeedDMA { get; set; } = false;
+		public ExecutionVector Controller { get; set; } = new ExecutionVector();
+		/// <summary>
+		/// Вектор отображения конвейера
+		/// </summary>
+		public ExecutionVector Conveyor { get; set; } = new ExecutionVector();
 		/// <summary>
 		/// Количество контроллеров
 		/// </summary>
