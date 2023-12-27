@@ -20,20 +20,20 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public List<Request> RequestList { get; set; } = new List<Request>();
 		/// <summary>
-		/// Вектор отображения контроллера
+		/// Список векторов отображения контроллера
 		/// </summary>
-		public ExecutionVector Controller { get; set; } = new ExecutionVector();
+		public List<ExecutionVector> ControllerList { get; set; } = new List<ExecutionVector>();
 		/// <summary>
-		/// Вектор отображения конвейера
+		/// Векторо отображения конвейера
 		/// </summary>
 		public ExecutionVector Conveyor { get; set; } = new ExecutionVector();
 		/// <summary>
-		/// Количество контроллеров
+		/// Вектор отображения DMA.
+		/// Прямой доступ к памяти — режим обмена данными между устройствами компьютера или же между устройством и основной памятью,
+		/// в котором центральный процессор не участвует. Так как данные не пересылаются в ЦП и обратно, скорость передачи увеличивается.
 		/// </summary>
-		public int NumberOfController { get; set; } = 1;
-		/// <summary>
-		/// Количество конвейеров
-		/// </summary>
-		public int NumberOfConveyors { get; private set; } = 1;
+		public ExecutionVector DirectMemoryAccess { get; set; }
+
+		public Microprocessor() { }
 	}
 }

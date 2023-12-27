@@ -33,9 +33,13 @@ namespace CiclogramWriter
 			int id_mp = (a_id_mp != null && a_id_mp.Count > 0) ? a_id_mp.Max() + 1 : 1;
 			var o_mp_new = new Microprocessor()
 			{
-				Id = id_mp,
-				NumberOfController = (int)num_of_control.Value
+				Id = id_mp
 			};
+
+			for(int i=0; i< (int)num_of_control.Value; i++)
+			{
+
+			}
 
 			tb_num_pm.Text = id_mp.ToString();
 			processor.MPList.Add(o_mp_new);

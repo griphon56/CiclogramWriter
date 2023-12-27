@@ -26,5 +26,12 @@
 		/// Количество прошедших тактов по оси X
 		/// </summary>
 		public int NumberOfTact { get; set; } = 0;
+
+		public ExecutionVector() { }
+
+		public ExecutionVector(int id)
+		{
+			Id = id;
+		}
 	}
 }
