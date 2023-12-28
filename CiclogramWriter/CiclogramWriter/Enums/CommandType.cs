@@ -24,6 +24,10 @@
 		/// (Не кеш; У.О.)
 		/// (Не кеш; Управляющая)
 		/// </summary>
-		NotCache_MO
+		NotCache_MO,
+		/// <summary>
+		/// ДМА
+		/// </summary>
+		DMA
 	}
 }

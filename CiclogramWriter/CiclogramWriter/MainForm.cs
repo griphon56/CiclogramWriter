@@ -31,14 +31,11 @@ namespace CiclogramWriter
 		{
 			var a_id_mp = processor.MPList.Select(x => x.Id).ToList();
 			int id_mp = (a_id_mp != null && a_id_mp.Count > 0) ? a_id_mp.Max() + 1 : 1;
-			var o_mp_new = new Microprocessor()
-			{
-				Id = id_mp
-			};
+			var o_mp_new = new Microprocessor(id_mp);
 
 			for(int i=0; i< (int)num_of_control.Value; i++)
 			{
-
+				o_mp_new.ControllerList.Add(new ExecutionVector(i+1));
 			}
 
 			tb_num_pm.Text = id_mp.ToString();
@@ -104,21 +101,28 @@ namespace CiclogramWriter
 			};
 
 			// Устанавливаем тип команды.
-			if (cb_in_cache.Checked && !cb_yo.Checked)
+			if (cb_dma.Checked)
 			{
-				o_command.CommandType = Enums.CommandType.Cache_False;
+				o_command.CommandType = Enums.CommandType.DMA;
 			}
-			else if (cb_in_cache.Checked && cb_yo.Checked)
+			else
 			{
-				o_command.CommandType = Enums.CommandType.Cache_MO;
-			}
-			else if (!cb_in_cache.Checked && !cb_yo.Checked)
-			{
-				o_command.CommandType = Enums.CommandType.NotCache_False;
-			}
-			else if (!cb_in_cache.Checked && cb_yo.Checked)
-			{
-				o_command.CommandType = Enums.CommandType.NotCache_MO;
+				if (cb_in_cache.Checked && !cb_yo.Checked)
+				{
+					o_command.CommandType = Enums.CommandType.Cache_False;
+				}
+				else if (cb_in_cache.Checked && cb_yo.Checked)
+				{
+					o_command.CommandType = Enums.CommandType.Cache_MO;
+				}
+				else if (!cb_in_cache.Checked && !cb_yo.Checked)
+				{
+					o_command.CommandType = Enums.CommandType.NotCache_False;
+				}
+				else if (!cb_in_cache.Checked && cb_yo.Checked)
+				{
+					o_command.CommandType = Enums.CommandType.NotCache_MO;
+				}
 			}
 
 			o_mp.CommandList.Add(o_command);
@@ -202,6 +206,9 @@ namespace CiclogramWriter
 							case Enums.CommandType.NotCache_MO:
 								s_result += $"Команда №{o_command.Id} (Не кеш; У.О.) - {o_command.NumberOfClockCycles} тактов.\n";
 								break;
+							case Enums.CommandType.DMA:
+								s_result += $"Команда №{o_command.Id} (DMA) - {o_command.NumberOfClockCycles} тактов.\n";
+								break;
 						}
 					}
 				}
@@ -238,10 +245,10 @@ namespace CiclogramWriter
 		private void DrawMicroprocessor(Microprocessor o_mp, DrawChart o_draw, Graphics o_graphic)
 		{
 			#region Контроллер и конвейер микропроцессора
-			for (int i = 0; i < o_mp.NumberOfController; i++)
+			foreach(var o_controller in o_mp.ControllerList)
 			{
-				o_draw.DrawLine(o_graphic, $"k{i + 1}", out int startPointY_kn);
-				o_mp.Controller.StartPointY = startPointY_kn;
+				o_draw.DrawLine(o_graphic, $"k{o_controller.Id}", out int startPointY_kn);
+				o_controller.StartPointY = startPointY_kn;
 				o_draw.StepIndentLine += o_draw.IndentLine;
 			}
 
@@ -270,6 +277,8 @@ namespace CiclogramWriter
 					in_progress = false;
 				}
 
+				var o_controller = o_mp.ControllerList.FirstOrDefault();
+
 				// Выбираем заявки
 				if (o_mp.RequestList.Count > 0 && is_free)
 				{
@@ -288,15 +297,15 @@ namespace CiclogramWriter
 					{
 						case Enums.CommandType.Cache_MO:
 							{
-								o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY, processor.Fsh);
+								o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
 
-								o_mp.Controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+								o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
-								o_mp.Conveyor.NumberOfTact = o_mp.Controller.NumberOfTact;
+								o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 
 								o_mp.RequestList.Remove(o_temp_request);
 
-								i_tact_time = o_mp.Controller.NumberOfTact;
+								i_tact_time = o_controller.NumberOfTact;
 
 								break;
 							}
@@ -316,17 +325,17 @@ namespace CiclogramWriter
 										}
 									case StateCommand.Decode:
 										{
-											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-											o_mp.Controller.NumberOfTact += 1;
+											o_controller.NumberOfTact += 1;
 
-											o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+											o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-											o_mp.Controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles;
+											o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles;
 
 											o_mp.RequestList.Remove(o_temp_request);
 
-											i_tact_time = o_mp.Controller.NumberOfTact;
+											i_tact_time = o_controller.NumberOfTact;
 
 											break;
 										}
@@ -350,9 +359,9 @@ namespace CiclogramWriter
 										}
 									case StateCommand.Decode:
 										{
-											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-											o_mp.Controller.NumberOfTact += 1;
+											o_controller.NumberOfTact += 1;
 
 											var o_request = new Request()
 											{
@@ -362,30 +371,30 @@ namespace CiclogramWriter
 
 											o_mp.RequestList.Add(o_request);
 
-											o_mp.Controller.StartRequestPointY = (o_mp.Controller.StartRequestPointX == o_mp.Controller.NumberOfTact * DrawChart.SquareSize)
-												? o_mp.Controller.StartPointY - DrawChart.SquareSize
-												: o_mp.Controller.StartPointY;
+											o_controller.StartRequestPointY = (o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+												? o_controller.StartPointY - DrawChart.SquareSize
+												: o_controller.StartPointY;
 
-											o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartRequestPointY);
-											o_mp.Controller.StartRequestPointX = o_mp.Controller.NumberOfTact * DrawChart.SquareSize;
+											o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+											o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
 
 											o_mp.RequestList.Remove(o_temp_request);
 
-											i_tact_time = o_mp.Controller.NumberOfTact;
+											i_tact_time = o_controller.NumberOfTact;
 
 											break;
 										}
 									case StateCommand.SystemBusKN:
 										{
-											o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY, processor.Fsh);
+											o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
 
-											o_mp.Controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+											o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
 											o_mp.RequestList.Remove(o_temp_request);
 
-											o_mp.Conveyor.NumberOfTact = o_mp.Controller.NumberOfTact;
+											o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 
-											i_tact_time = o_mp.Controller.NumberOfTact;
+											i_tact_time = o_controller.NumberOfTact;
 
 											break;
 										}
@@ -405,36 +414,36 @@ namespace CiclogramWriter
 					{
 						case Enums.CommandType.Cache_False:
 							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-								o_mp.Controller.NumberOfTact += 1;
+								o_controller.NumberOfTact += 1;
 
-								o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+								o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-								o_mp.Controller.NumberOfTact += o_temp_command.NumberOfClockCycles;
+								o_controller.NumberOfTact += o_temp_command.NumberOfClockCycles;
 
 								a_temp_command.Remove(o_temp_command);
 
 								if (is_free)
 								{
-									i_tact_time = o_mp.Controller.NumberOfTact;
+									i_tact_time = o_controller.NumberOfTact;
 								}
 
 								break;
 							}
 						case Enums.CommandType.Cache_MO:
 							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartPointY);
+								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
 
-								o_mp.Controller.NumberOfTact += 1;
+								o_controller.NumberOfTact += 1;
 
-								o_mp.Controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_mp.Controller.StartRequestPointX == o_mp.Controller.NumberOfTact * DrawChart.SquareSize)
-									? o_mp.Controller.StartPointY - DrawChart.SquareSize
-									: o_mp.Controller.StartPointY;
+								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+									? o_controller.StartPointY - DrawChart.SquareSize
+									: o_controller.StartPointY;
 
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartRequestPointY);
+								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
 
-								o_mp.Controller.StartRequestPointX = o_mp.Controller.NumberOfTact * DrawChart.SquareSize;
+								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
 
 								var o_request = new Request()
 								{
@@ -444,29 +453,29 @@ namespace CiclogramWriter
 
 								o_mp.RequestList.Add(o_request);
 
-								if (o_mp.Conveyor.NumberOfTact <= o_mp.Controller.NumberOfTact && i_count == 0)
+								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
 								{
-									o_mp.Conveyor.NumberOfTact = o_mp.Controller.NumberOfTact;
+									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
 								a_temp_command.Remove(o_temp_command);
 
 								if (is_free)
 								{
-									i_tact_time = o_mp.Controller.NumberOfTact;
+									i_tact_time = o_controller.NumberOfTact;
 								}
 
 								break;
 							}
 						case Enums.CommandType.NotCache_False:
 							{
-								o_mp.Controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_mp.Controller.StartRequestPointX == o_mp.Controller.NumberOfTact * DrawChart.SquareSize)
-									? o_mp.Controller.StartPointY - DrawChart.SquareSize
-									: o_mp.Controller.StartPointY;
+								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+									? o_controller.StartPointY - DrawChart.SquareSize
+									: o_controller.StartPointY;
 
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartRequestPointY);
+								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
 
-								o_mp.Controller.StartRequestPointX = o_mp.Controller.NumberOfTact * DrawChart.SquareSize;
+								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
 
 								var o_request = new Request()
 								{
@@ -476,9 +485,9 @@ namespace CiclogramWriter
 
 								o_mp.RequestList.Add(o_request);
 
-								if (o_mp.Conveyor.NumberOfTact <= o_mp.Controller.NumberOfTact && i_count == 0)
+								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
 								{
-									o_mp.Conveyor.NumberOfTact = o_mp.Controller.NumberOfTact;
+									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
 								a_temp_command.Remove(o_temp_command);
@@ -487,13 +496,13 @@ namespace CiclogramWriter
 							}
 						case Enums.CommandType.NotCache_MO:
 							{
-								o_mp.Controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_mp.Controller.StartRequestPointX == o_mp.Controller.NumberOfTact * DrawChart.SquareSize)
-									? o_mp.Controller.StartPointY - DrawChart.SquareSize
-									: o_mp.Controller.StartPointY;
+								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+									? o_controller.StartPointY - DrawChart.SquareSize
+									: o_controller.StartPointY;
 
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_mp.Controller.NumberOfTact * DrawChart.SquareSize, o_mp.Controller.StartRequestPointY);
+								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
 
-								o_mp.Controller.StartRequestPointX = o_mp.Controller.NumberOfTact * DrawChart.SquareSize;
+								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
 
 								var o_request = new Request()
 								{
@@ -503,9 +512,9 @@ namespace CiclogramWriter
 
 								o_mp.RequestList.Add(o_request);
 
-								if (o_mp.Conveyor.NumberOfTact <= o_mp.Controller.NumberOfTact && i_count == 0)
+								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
 								{
-									o_mp.Conveyor.NumberOfTact = o_mp.Controller.NumberOfTact;
+									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
 								a_temp_command.Remove(o_temp_command);
@@ -525,9 +534,9 @@ namespace CiclogramWriter
 				{
 					is_free = true;
 
-					if (i_tact_time > o_mp.Controller.NumberOfTact)
+					if (i_tact_time > o_controller.NumberOfTact)
 					{
-						o_mp.Controller.NumberOfTact = i_tact_time;
+						o_controller.NumberOfTact = i_tact_time;
 					}
 				}
 

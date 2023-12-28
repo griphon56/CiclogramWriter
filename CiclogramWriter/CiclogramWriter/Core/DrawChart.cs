@@ -75,7 +75,6 @@ namespace CiclogramWriter.Core
 		/// <param name="o_graphic"></param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
-		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
 		public void DrawCacheKN(Graphics o_graphic, string s_content, int point_x, int point_y)
 		{
 			var drawRect_command = new Rectangle(point_x, point_y - DrawChart.SquareSize, DrawChart.SquareSize, DrawChart.SquareSize);
@@ -90,7 +89,6 @@ namespace CiclogramWriter.Core
 		/// <param name="num_cycles">Количество тактов</param>
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
-		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
 		public void DrawMicroBusKN(Graphics o_graphic, int num_cycles, int point_x, int point_y)
 		{
 			int i_width = DrawChart.SquareSize * num_cycles;
@@ -105,7 +103,6 @@ namespace CiclogramWriter.Core
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
 		/// <param name="f_sh">f(сш)</param>
-		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
 		public void DrawSystemBusKN(Graphics o_graphic, string s_content, int num_cycles, int point_x, int point_y, int f_sh)
 		{
 			int i_width = DrawChart.SquareSize * num_cycles * f_sh;
@@ -122,7 +119,6 @@ namespace CiclogramWriter.Core
 		/// <param name="point_x">Начальная точка Х </param>
 		/// <param name="point_y">Начальная точка У</param>
 		/// <param name="f_op">F(оп)</param>
-		/// <param name="end_point_x">Возвращает конечную точку по Х</param>
 		public void DrawSystemBusKK(Graphics o_graphic, string s_content, int num_cycles, int point_x, int point_y, int f_op)
 		{
 			int i_width = DrawChart.SquareSize * 2 * num_cycles * f_op;

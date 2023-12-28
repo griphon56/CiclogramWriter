@@ -20,11 +20,11 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public List<Request> RequestList { get; set; } = new List<Request>();
 		/// <summary>
-		/// Список векторов отображения контроллера
+		/// Список векторов отображения контроллеров
 		/// </summary>
 		public List<ExecutionVector> ControllerList { get; set; } = new List<ExecutionVector>();
 		/// <summary>
-		/// Векторо отображения конвейера
+		/// Вектор отображения конвейера
 		/// </summary>
 		public ExecutionVector Conveyor { get; set; } = new ExecutionVector();
 		/// <summary>
@@ -35,5 +35,10 @@ namespace CiclogramWriter.Core
 		public ExecutionVector DirectMemoryAccess { get; set; }
 
 		public Microprocessor() { }
+
+		public Microprocessor(int id)
+		{
+			Id = id;
+		}
 	}
 }

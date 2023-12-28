@@ -57,6 +57,7 @@ namespace CiclogramWriter
 			this.btn_add_pm = new System.Windows.Forms.Button();
 			this.p_canvas = new System.Windows.Forms.Panel();
 			this.pb_canvas = new System.Windows.Forms.PictureBox();
+			this.cb_dma = new System.Windows.Forms.CheckBox();
 			this.sidebar_panel.SuspendLayout();
 			this.settings_panel.SuspendLayout();
 			this.gb_list_command.SuspendLayout();
@@ -104,9 +105,9 @@ namespace CiclogramWriter
 			// gb_list_command
 			// 
 			this.gb_list_command.Controls.Add(this.rt_list_command);
-			this.gb_list_command.Location = new System.Drawing.Point(7, 455);
+			this.gb_list_command.Location = new System.Drawing.Point(7, 483);
 			this.gb_list_command.Name = "gb_list_command";
-			this.gb_list_command.Size = new System.Drawing.Size(299, 306);
+			this.gb_list_command.Size = new System.Drawing.Size(299, 278);
 			this.gb_list_command.TabIndex = 3;
 			this.gb_list_command.TabStop = false;
 			this.gb_list_command.Text = "Список команд";
@@ -127,7 +128,7 @@ namespace CiclogramWriter
 			this.gb_settings.Controls.Add(this.label4);
 			this.gb_settings.Controls.Add(this.tb_mp_sh);
 			this.gb_settings.Controls.Add(this.label3);
-			this.gb_settings.Location = new System.Drawing.Point(7, 296);
+			this.gb_settings.Location = new System.Drawing.Point(5, 324);
 			this.gb_settings.Name = "gb_settings";
 			this.gb_settings.Size = new System.Drawing.Size(299, 153);
 			this.gb_settings.TabIndex = 2;
@@ -187,6 +188,7 @@ namespace CiclogramWriter
 			// 
 			// gb_command_set
 			// 
+			this.gb_command_set.Controls.Add(this.cb_dma);
 			this.gb_command_set.Controls.Add(this.brn_gen);
 			this.gb_command_set.Controls.Add(this.num_count_tact);
 			this.gb_command_set.Controls.Add(this.btn_add_command);
@@ -195,14 +197,14 @@ namespace CiclogramWriter
 			this.gb_command_set.Controls.Add(this.label2);
 			this.gb_command_set.Location = new System.Drawing.Point(5, 129);
 			this.gb_command_set.Name = "gb_command_set";
-			this.gb_command_set.Size = new System.Drawing.Size(299, 161);
+			this.gb_command_set.Size = new System.Drawing.Size(299, 189);
 			this.gb_command_set.TabIndex = 1;
 			this.gb_command_set.TabStop = false;
 			this.gb_command_set.Text = "Настройка команд";
 			// 
 			// brn_gen
 			// 
-			this.brn_gen.Location = new System.Drawing.Point(154, 117);
+			this.brn_gen.Location = new System.Drawing.Point(152, 150);
 			this.brn_gen.Name = "brn_gen";
 			this.brn_gen.Size = new System.Drawing.Size(139, 29);
 			this.brn_gen.TabIndex = 7;
@@ -230,7 +232,7 @@ namespace CiclogramWriter
 			// 
 			// btn_add_command
 			// 
-			this.btn_add_command.Location = new System.Drawing.Point(6, 117);
+			this.btn_add_command.Location = new System.Drawing.Point(4, 150);
 			this.btn_add_command.Name = "btn_add_command";
 			this.btn_add_command.Size = new System.Drawing.Size(140, 29);
 			this.btn_add_command.TabIndex = 6;
@@ -370,6 +372,16 @@ namespace CiclogramWriter
 			this.pb_canvas.TabIndex = 0;
 			this.pb_canvas.TabStop = false;
 			// 
+			// cb_dma
+			// 
+			this.cb_dma.AutoSize = true;
+			this.cb_dma.Location = new System.Drawing.Point(6, 117);
+			this.cb_dma.Name = "cb_dma";
+			this.cb_dma.Size = new System.Drawing.Size(65, 24);
+			this.cb_dma.TabIndex = 8;
+			this.cb_dma.Text = "DMA";
+			this.cb_dma.UseVisualStyleBackColor = true;
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -432,6 +444,7 @@ namespace CiclogramWriter
 		private System.Windows.Forms.NumericUpDown num_of_control;
 		private System.Windows.Forms.Button btn_draw_chart;
 		private System.Windows.Forms.Button brn_gen;
+		private System.Windows.Forms.CheckBox cb_dma;
 	}
 }
 
