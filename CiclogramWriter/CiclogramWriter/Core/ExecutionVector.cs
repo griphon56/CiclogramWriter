@@ -26,6 +26,10 @@
 		/// Количество прошедших тактов по оси X
 		/// </summary>
 		public int NumberOfTact { get; set; } = 0;
+		/// <summary>
+		///  Флаг - свободен ли вектор для записи
+		/// </summary>
+		public bool IsFree { get; set; } = true;
 
 		public ExecutionVector() { }
 

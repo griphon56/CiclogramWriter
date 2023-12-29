@@ -10,7 +10,7 @@ namespace CiclogramWriter.Core
 		/// <summary>
 		/// Размер сетки квадрата (шаг)
 		/// </summary>
-		public static int SquareSize { get; private set; } = 20;
+		public static int SquareSize { get; private set; } = 30;
 		/// <summary>
 		/// Ширина холста
 		/// </summary>
@@ -28,7 +28,7 @@ namespace CiclogramWriter.Core
 		/// </summary>
 		public int StepIndentLine { get; set; } = SquareSize * 5;
 
-		private Font DrawFont { get; set; } = new Font("Calibri", 8);
+		private Font DrawFont { get; set; } = new Font("Calibri", 10);
 		private SolidBrush DrawBrush { get; set; } = new SolidBrush(Color.Black);
 		private StringFormat DrawFormat { get; set; }  = new StringFormat();
 

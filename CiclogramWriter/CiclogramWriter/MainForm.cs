@@ -264,11 +264,9 @@ namespace CiclogramWriter
 
 			int i_count = 0;
 
-			// Флаг - свободна системная шина конвейера
-			bool is_free = true;
 			// Флаг - находимся в режиме отрисовки циклограммы
 			bool in_progress = true;
-
+			
 			while (in_progress)
 			{
 				// Выходим из цикла, когда нет заявок и все команды выполнены
@@ -280,12 +278,13 @@ namespace CiclogramWriter
 				var o_controller = o_mp.ControllerList.FirstOrDefault();
 
 				// Выбираем заявки
-				if (o_mp.RequestList.Count > 0 && is_free)
+				if (o_mp.RequestList.Count > 0 && o_mp.Conveyor.IsFree)
 				{
 					// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
 					var a_request_priority = o_mp.RequestList
 						.Where(x => x.Command.CommandType == Enums.CommandType.Cache_MO
-						|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN)).OrderBy(x => x.Command.Id).ToList();
+							|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN))
+						.OrderBy(x => x.Command.Id).ToList();
 
 					var o_temp_request = o_mp.RequestList[0];
 					if (a_request_priority.Count > 0)
@@ -372,7 +371,7 @@ namespace CiclogramWriter
 											o_mp.RequestList.Add(o_request);
 
 											o_controller.StartRequestPointY = (o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-												? o_controller.StartPointY - DrawChart.SquareSize
+												? o_controller.StartRequestPointY - DrawChart.SquareSize
 												: o_controller.StartPointY;
 
 											o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
@@ -402,6 +401,14 @@ namespace CiclogramWriter
 
 								break;
 							}
+						case Enums.CommandType.DMA:
+							{
+								o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.DirectMemoryAccess.NumberOfTact * DrawChart.SquareSize, o_mp.DirectMemoryAccess.StartPointY, processor.Fop);
+
+								o_mp.DirectMemoryAccess.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+
+								break;
+							}
 					}
 				}
 
@@ -424,7 +431,7 @@ namespace CiclogramWriter
 
 								a_temp_command.Remove(o_temp_command);
 
-								if (is_free)
+								if (o_mp.Conveyor.IsFree)
 								{
 									i_tact_time = o_controller.NumberOfTact;
 								}
@@ -438,7 +445,7 @@ namespace CiclogramWriter
 								o_controller.NumberOfTact += 1;
 
 								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartPointY - DrawChart.SquareSize
+									? o_controller.StartRequestPointY - DrawChart.SquareSize
 									: o_controller.StartPointY;
 
 								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
@@ -460,7 +467,7 @@ namespace CiclogramWriter
 
 								a_temp_command.Remove(o_temp_command);
 
-								if (is_free)
+								if (o_mp.Conveyor.IsFree)
 								{
 									i_tact_time = o_controller.NumberOfTact;
 								}
@@ -470,7 +477,7 @@ namespace CiclogramWriter
 						case Enums.CommandType.NotCache_False:
 							{
 								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartPointY - DrawChart.SquareSize
+									? o_controller.StartRequestPointY - DrawChart.SquareSize
 									: o_controller.StartPointY;
 
 								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
@@ -497,7 +504,7 @@ namespace CiclogramWriter
 						case Enums.CommandType.NotCache_MO:
 							{
 								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartPointY - DrawChart.SquareSize
+									? o_controller.StartRequestPointY - DrawChart.SquareSize
 									: o_controller.StartPointY;
 
 								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
@@ -521,18 +528,44 @@ namespace CiclogramWriter
 
 								break;
 							}
+						case Enums.CommandType.DMA:
+							{
+								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+									? o_controller.StartRequestPointY - DrawChart.SquareSize
+									: o_controller.StartPointY;
+
+								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+								var o_request = new Request()
+								{
+									Command = o_temp_command,
+								};
+
+								o_mp.RequestList.Add(o_request);
+
+								if (o_mp.DirectMemoryAccess.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
+								{
+									o_mp.DirectMemoryAccess.NumberOfTact = o_controller.NumberOfTact;
+								}
+
+								a_temp_command.Remove(o_temp_command);
+
+								break;
+							}
 					}
 				}
 
 				// Проверряем занята ли системная шина
 				if (o_mp.Conveyor.NumberOfTact > i_tact_time)
 				{
-					is_free = false;
+					o_mp.Conveyor.IsFree = false;
 					i_tact_time++;
 				}
 				else
 				{
-					is_free = true;
+					o_mp.Conveyor.IsFree = true;
 
 					if (i_tact_time > o_controller.NumberOfTact)
 					{
