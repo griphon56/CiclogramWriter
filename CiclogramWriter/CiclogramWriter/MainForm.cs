@@ -104,6 +104,11 @@ namespace CiclogramWriter
 			if (cb_dma.Checked)
 			{
 				o_command.CommandType = Enums.CommandType.DMA;
+
+				if (o_mp.DirectMemoryAccess == null)
+				{
+					o_mp.DirectMemoryAccess = new ExecutionVector(1);
+				}
 			}
 			else
 			{
@@ -244,7 +249,7 @@ namespace CiclogramWriter
 		/// <param name="o_graphic"></param>
 		private void DrawMicroprocessor(Microprocessor o_mp, DrawChart o_draw, Graphics o_graphic)
 		{
-			#region Контроллер и конвейер микропроцессора
+			#region Контроллер, конвейер и DMA микропроцессора
 			foreach(var o_controller in o_mp.ControllerList)
 			{
 				o_draw.DrawLine(o_graphic, $"k{o_controller.Id}", out int startPointY_kn);
@@ -255,9 +260,14 @@ namespace CiclogramWriter
 			o_draw.DrawLine(o_graphic, "kk", out int startPointY_kk);
 			o_mp.Conveyor.StartPointY = startPointY_kk;
 			o_draw.StepIndentLine += o_draw.IndentLine;
-			#endregion
 
-			var a_temp_command = o_mp.CommandList;
+			if (o_mp.DirectMemoryAccess != null)
+			{
+				o_draw.DrawLine(o_graphic, "DMA", out int startPointY_dma);
+				o_mp.DirectMemoryAccess.StartPointY = startPointY_dma;
+				o_draw.StepIndentLine += o_draw.IndentLine;
+			}
+			#endregion
 
 			// Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)
 			int i_tact_time = 0;
@@ -270,12 +280,12 @@ namespace CiclogramWriter
 			while (in_progress)
 			{
 				// Выходим из цикла, когда нет заявок и все команды выполнены
-				if (o_mp.RequestList.Count == 0 && a_temp_command.Count == 0)
+				if (o_mp.RequestList.Count == 0 && o_mp.CommandList.Count == 0)
 				{
 					in_progress = false;
 				}
 
-				var o_controller = o_mp.ControllerList.FirstOrDefault();
+				var o_controller = GetFreeController(o_mp.ControllerList);
 
 				// Выбираем заявки
 				if (o_mp.RequestList.Count > 0 && o_mp.Conveyor.IsFree)
@@ -413,9 +423,10 @@ namespace CiclogramWriter
 				}
 
 				// Выбираем команды
-				if (a_temp_command.Count > 0)
+				if (o_mp.CommandList.Count > 0)
 				{
-					var o_temp_command = a_temp_command[0];
+					var o_temp_command = o_mp.CommandList[0];
+					o_temp_command.ControllerId = o_controller.Id;
 
 					switch (o_temp_command.CommandType)
 					{
@@ -429,7 +440,7 @@ namespace CiclogramWriter
 
 								o_controller.NumberOfTact += o_temp_command.NumberOfClockCycles;
 
-								a_temp_command.Remove(o_temp_command);
+								o_mp.CommandList.Remove(o_temp_command);
 
 								if (o_mp.Conveyor.IsFree)
 								{
@@ -465,7 +476,7 @@ namespace CiclogramWriter
 									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
-								a_temp_command.Remove(o_temp_command);
+								o_mp.CommandList.Remove(o_temp_command);
 
 								if (o_mp.Conveyor.IsFree)
 								{
@@ -497,7 +508,7 @@ namespace CiclogramWriter
 									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
-								a_temp_command.Remove(o_temp_command);
+								o_mp.CommandList.Remove(o_temp_command);
 
 								break;
 							}
@@ -524,7 +535,7 @@ namespace CiclogramWriter
 									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 								}
 
-								a_temp_command.Remove(o_temp_command);
+								o_mp.CommandList.Remove(o_temp_command);
 
 								break;
 							}
@@ -550,7 +561,7 @@ namespace CiclogramWriter
 									o_mp.DirectMemoryAccess.NumberOfTact = o_controller.NumberOfTact;
 								}
 
-								a_temp_command.Remove(o_temp_command);
+								o_mp.CommandList.Remove(o_temp_command);
 
 								break;
 							}
@@ -574,6 +585,36 @@ namespace CiclogramWriter
 				}
 
 				i_count++;
+			}
+		}
+		/// <summary>
+		/// Метод получения свободного контроллера.
+		/// </summary>
+		/// <param name="a_controller">Список контроллеров</param>
+		private ExecutionVector GetFreeController(List<ExecutionVector> a_controller)
+		{
+			// Выбираем свободные контроллеры.
+			var a_cont_free = a_controller.Where(x => x.IsFree).OrderBy(x => x.Id).ToList();
+			// Если все заняты выбираем первый
+			if (a_cont_free == null)
+			{
+				return a_controller.Where(x => x.Id == 1).FirstOrDefault();
+			}
+			else
+			{
+				// Выбираем контроллер, у которого меньше всего занятого места.
+				ExecutionVector o_res_controller = a_cont_free.OrderBy(x => x.Id).FirstOrDefault();
+				int i_min = o_res_controller.NumberOfTact;
+				foreach(var o_cont in a_cont_free)
+				{
+					if (i_min < o_cont.NumberOfTact)
+					{
+						i_min = o_cont.NumberOfTact;
+						o_res_controller = o_cont;
+					}
+				}
+
+				return o_res_controller;
 			}
 		}
 		/// <summary>

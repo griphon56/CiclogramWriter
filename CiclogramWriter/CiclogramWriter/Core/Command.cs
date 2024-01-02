@@ -20,5 +20,9 @@ namespace CiclogramWriter.Core
 		/// Тип команды
 		/// </summary>
 		public CommandType CommandType { get; set; }
+		/// <summary>
+		/// Код контроллера, в котором выполняется команда
+		/// </summary>
+		public int ControllerId { get; set; }
 	}
 }
