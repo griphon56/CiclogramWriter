@@ -285,287 +285,18 @@ namespace CiclogramWriter
 					in_progress = false;
 				}
 
-				var o_controller = GetFreeController(o_mp.ControllerList);
+				var o_controller = GetFreeController(o_mp.ControllerList, o_mp);
 
 				// Выбираем заявки
 				if (o_mp.RequestList.Count > 0 && o_mp.Conveyor.IsFree)
 				{
-					// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
-					var a_request_priority = o_mp.RequestList
-						.Where(x => x.Command.CommandType == Enums.CommandType.Cache_MO
-							|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN))
-						.OrderBy(x => x.Command.Id).ToList();
-
-					var o_temp_request = o_mp.RequestList[0];
-					if (a_request_priority.Count > 0)
-					{
-						o_temp_request = a_request_priority[0];
-					}
-
-					switch (o_temp_request.Command.CommandType)
-					{
-						case Enums.CommandType.Cache_MO:
-							{
-								o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
-
-								o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
-
-								o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-
-								o_mp.RequestList.Remove(o_temp_request);
-
-								i_tact_time = o_controller.NumberOfTact;
-
-								break;
-							}
-						case Enums.CommandType.NotCache_False:
-							{
-								switch (o_temp_request.StateCommand)
-								{
-									case StateCommand.SystemBusKK:
-										{
-											o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Conveyor.NumberOfTact * DrawChart.SquareSize, o_mp.Conveyor.StartPointY, processor.Fop);
-
-											o_mp.Conveyor.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
-
-											o_temp_request.StateCommand = StateCommand.Decode;
-
-											break;
-										}
-									case StateCommand.Decode:
-										{
-											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-											o_controller.NumberOfTact += 1;
-
-											o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-											o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles;
-
-											o_mp.RequestList.Remove(o_temp_request);
-
-											i_tact_time = o_controller.NumberOfTact;
-
-											break;
-										}
-								}
-
-								break;
-							}
-						case Enums.CommandType.NotCache_MO:
-							{
-								switch (o_temp_request.StateCommand)
-								{
-									case StateCommand.SystemBusKK:
-										{
-											o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Conveyor.NumberOfTact * DrawChart.SquareSize, o_mp.Conveyor.StartPointY, processor.Fop);
-
-											o_mp.Conveyor.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
-
-											o_temp_request.StateCommand = StateCommand.Decode;
-
-											break;
-										}
-									case StateCommand.Decode:
-										{
-											o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-											o_controller.NumberOfTact += 1;
-
-											var o_request = new Request()
-											{
-												Command = o_temp_request.Command,
-												StateCommand = StateCommand.SystemBusKN
-											};
-
-											o_mp.RequestList.Add(o_request);
-
-											o_controller.StartRequestPointY = (o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-												? o_controller.StartRequestPointY - DrawChart.SquareSize
-												: o_controller.StartPointY;
-
-											o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-											o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
-
-											o_mp.RequestList.Remove(o_temp_request);
-
-											i_tact_time = o_controller.NumberOfTact;
-
-											break;
-										}
-									case StateCommand.SystemBusKN:
-										{
-											o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
-
-											o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
-
-											o_mp.RequestList.Remove(o_temp_request);
-
-											o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-
-											i_tact_time = o_controller.NumberOfTact;
-
-											break;
-										}
-								}
-
-								break;
-							}
-						case Enums.CommandType.DMA:
-							{
-								o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.DirectMemoryAccess.NumberOfTact * DrawChart.SquareSize, o_mp.DirectMemoryAccess.StartPointY, processor.Fop);
-
-								o_mp.DirectMemoryAccess.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
-
-								break;
-							}
-					}
+					WorkWithRequest(o_mp, o_controller, i_tact_time, o_draw, o_graphic);
 				}
 
 				// Выбираем команды
 				if (o_mp.CommandList.Count > 0)
 				{
-					var o_temp_command = o_mp.CommandList[0];
-					o_temp_command.ControllerId = o_controller.Id;
-
-					switch (o_temp_command.CommandType)
-					{
-						case Enums.CommandType.Cache_False:
-							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-								o_controller.NumberOfTact += 1;
-
-								o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-								o_controller.NumberOfTact += o_temp_command.NumberOfClockCycles;
-
-								o_mp.CommandList.Remove(o_temp_command);
-
-								if (o_mp.Conveyor.IsFree)
-								{
-									i_tact_time = o_controller.NumberOfTact;
-								}
-
-								break;
-							}
-						case Enums.CommandType.Cache_MO:
-							{
-								o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
-
-								o_controller.NumberOfTact += 1;
-
-								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartRequestPointY - DrawChart.SquareSize
-									: o_controller.StartPointY;
-
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
-
-								var o_request = new Request()
-								{
-									Command = o_temp_command,
-									StateCommand = StateCommand.SystemBusKN
-								};
-
-								o_mp.RequestList.Add(o_request);
-
-								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
-								{
-									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-								}
-
-								o_mp.CommandList.Remove(o_temp_command);
-
-								if (o_mp.Conveyor.IsFree)
-								{
-									i_tact_time = o_controller.NumberOfTact;
-								}
-
-								break;
-							}
-						case Enums.CommandType.NotCache_False:
-							{
-								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartRequestPointY - DrawChart.SquareSize
-									: o_controller.StartPointY;
-
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
-
-								var o_request = new Request()
-								{
-									Command = o_temp_command,
-									StateCommand = StateCommand.SystemBusKK
-								};
-
-								o_mp.RequestList.Add(o_request);
-
-								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
-								{
-									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-								}
-
-								o_mp.CommandList.Remove(o_temp_command);
-
-								break;
-							}
-						case Enums.CommandType.NotCache_MO:
-							{
-								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartRequestPointY - DrawChart.SquareSize
-									: o_controller.StartPointY;
-
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
-
-								var o_request = new Request()
-								{
-									Command = o_temp_command,
-									StateCommand = StateCommand.SystemBusKK
-								};
-
-								o_mp.RequestList.Add(o_request);
-
-								if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
-								{
-									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-								}
-
-								o_mp.CommandList.Remove(o_temp_command);
-
-								break;
-							}
-						case Enums.CommandType.DMA:
-							{
-								o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-									? o_controller.StartRequestPointY - DrawChart.SquareSize
-									: o_controller.StartPointY;
-
-								o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-								o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
-
-								var o_request = new Request()
-								{
-									Command = o_temp_command,
-								};
-
-								o_mp.RequestList.Add(o_request);
-
-								if (o_mp.DirectMemoryAccess.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
-								{
-									o_mp.DirectMemoryAccess.NumberOfTact = o_controller.NumberOfTact;
-								}
-
-								o_mp.CommandList.Remove(o_temp_command);
-
-								break;
-							}
-					}
+					WorkWithCommand(o_mp, o_controller, i_tact_time, i_count, o_draw, o_graphic);
 				}
 
 				// Проверряем занята ли системная шина
@@ -582,36 +313,362 @@ namespace CiclogramWriter
 					{
 						o_controller.NumberOfTact = i_tact_time;
 					}
+
+					foreach(var o_contr_set_free in o_mp.ControllerList)
+					{
+						o_contr_set_free.IsFree = true;
+					}
 				}
 
 				i_count++;
+			}
+		}
+
+		/// <summary>
+		/// Метод работы с заявками (отрисовка)
+		/// </summary>
+		/// <param name="o_mp">Микропроцессор</param>
+		/// <param name="o_controller">Контроллер</param>
+		/// <param name="i_tact_time">Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)</param>
+		/// <param name="o_draw">Объект отрисовки элементов</param>
+		/// <param name="o_graphic"></param>
+		private void WorkWithRequest(Microprocessor o_mp, ExecutionVector o_controller, int i_tact_time, DrawChart o_draw, Graphics o_graphic)
+		{
+			// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
+			var a_request_priority = o_mp.RequestList
+				.Where(x => x.Command.ControllerId == o_controller.Id && x.Command.CommandType == Enums.CommandType.Cache_MO
+					|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN))
+				.OrderBy(x => x.Command.Id).ToList();
+
+			var o_temp_request = o_mp.RequestList.Where(x => x.Command.ControllerId == o_controller.Id)
+				.OrderBy(x => x.Command.Id).FirstOrDefault();
+
+			if(o_temp_request == null)
+			{
+				return;
+			}
+
+			if (a_request_priority.Count > 0)
+			{
+				o_temp_request = a_request_priority.OrderBy(x => x.Command.Id).FirstOrDefault();
+			}
+
+			switch (o_temp_request.Command.CommandType)
+			{
+				case Enums.CommandType.Cache_MO:
+					{
+						o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
+
+						o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+
+						o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+
+						o_mp.RequestList.Remove(o_temp_request);
+
+						i_tact_time = o_controller.NumberOfTact;
+
+						break;
+					}
+				case Enums.CommandType.NotCache_False:
+					{
+						switch (o_temp_request.StateCommand)
+						{
+							case StateCommand.SystemBusKK:
+								{
+									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Conveyor.NumberOfTact * DrawChart.SquareSize, o_mp.Conveyor.StartPointY, processor.Fop);
+
+									o_mp.Conveyor.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+
+									o_temp_request.StateCommand = StateCommand.Decode;
+
+									break;
+								}
+							case StateCommand.Decode:
+								{
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+									o_controller.NumberOfTact += 1;
+
+									o_draw.DrawMicroBusKN(o_graphic, o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+									o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles;
+
+									o_mp.RequestList.Remove(o_temp_request);
+
+									i_tact_time = o_controller.NumberOfTact;
+
+									break;
+								}
+						}
+
+						break;
+					}
+				case Enums.CommandType.NotCache_MO:
+					{
+						switch (o_temp_request.StateCommand)
+						{
+							case StateCommand.SystemBusKK:
+								{
+									o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.Conveyor.NumberOfTact * DrawChart.SquareSize, o_mp.Conveyor.StartPointY, processor.Fop);
+
+									o_mp.Conveyor.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+
+									o_temp_request.StateCommand = StateCommand.Decode;
+
+									break;
+								}
+							case StateCommand.Decode:
+								{
+									o_draw.DrawCacheKN(o_graphic, $"{o_temp_request.Command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+									o_controller.NumberOfTact += 1;
+
+									var o_request = new Request()
+									{
+										Command = o_temp_request.Command,
+										StateCommand = StateCommand.SystemBusKN
+									};
+
+									o_mp.RequestList.Add(o_request);
+
+									o_controller.StartRequestPointY = (o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+										? o_controller.StartRequestPointY - DrawChart.SquareSize
+										: o_controller.StartPointY;
+
+									o_draw.DrawRequest(o_graphic, o_request.Command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+									o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+									o_mp.RequestList.Remove(o_temp_request);
+
+									i_tact_time = o_controller.NumberOfTact;
+
+									// Блокируем контроллер до выполнения команды У.О.
+									o_controller.IsFree = false;
+
+									break;
+								}
+							case StateCommand.SystemBusKN:
+								{
+									o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
+
+									o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+
+									o_mp.RequestList.Remove(o_temp_request);
+
+									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+
+									i_tact_time = o_controller.NumberOfTact;
+
+									break;
+								}
+						}
+
+						break;
+					}
+				case Enums.CommandType.DMA:
+					{
+						o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.DirectMemoryAccess.NumberOfTact * DrawChart.SquareSize, o_mp.DirectMemoryAccess.StartPointY, processor.Fop);
+
+						o_mp.DirectMemoryAccess.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+
+						break;
+					}
+			}
+		}
+		/// <summary>
+		/// Метод работы с командами (отрисовка)
+		/// </summary>
+		/// <param name="o_mp">Микропроцессор</param>
+		/// <param name="o_controller">Контроллер</param>
+		/// <param name="i_tact_time">Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)</param>
+		/// <param name="i_tact_time">Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)</param>
+		/// <param name="o_draw">Объект отрисовки элементов</param>
+		/// <param name="o_graphic"></param>
+		private void WorkWithCommand(Microprocessor o_mp, ExecutionVector o_controller, int i_tact_time, int i_count, DrawChart o_draw, Graphics o_graphic)
+		{
+			var o_temp_command = o_mp.CommandList.OrderBy(x=> x.Id).FirstOrDefault();
+			o_temp_command.ControllerId = o_controller.Id;
+
+			switch (o_temp_command.CommandType)
+			{
+				case Enums.CommandType.Cache_False:
+					{
+						o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+						o_controller.NumberOfTact += 1;
+
+						o_draw.DrawMicroBusKN(o_graphic, o_temp_command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+						o_controller.NumberOfTact += o_temp_command.NumberOfClockCycles;
+
+						o_mp.CommandList.Remove(o_temp_command);
+
+						if (o_mp.Conveyor.IsFree)
+						{
+							i_tact_time = o_controller.NumberOfTact;
+						}
+
+						break;
+					}
+				case Enums.CommandType.Cache_MO:
+					{
+						o_draw.DrawCacheKN(o_graphic, $"{o_temp_command.Id}", o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY);
+
+						o_controller.NumberOfTact += 1;
+
+						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+							? o_controller.StartRequestPointY - DrawChart.SquareSize
+							: o_controller.StartPointY;
+
+						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+						var o_request = new Request()
+						{
+							Command = o_temp_command,
+							StateCommand = StateCommand.SystemBusKN
+						};
+
+						o_mp.RequestList.Add(o_request);
+
+						if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
+						{
+							o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+						}
+
+						o_mp.CommandList.Remove(o_temp_command);
+
+						if (o_mp.Conveyor.IsFree)
+						{
+							i_tact_time = o_controller.NumberOfTact;
+						}
+
+						// Блокируем контроллер до выполнения команды У.О.
+						o_controller.IsFree = false;
+
+						break;
+					}
+				case Enums.CommandType.NotCache_False:
+					{
+						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+							? o_controller.StartRequestPointY - DrawChart.SquareSize
+							: o_controller.StartPointY;
+
+						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+						var o_request = new Request()
+						{
+							Command = o_temp_command,
+							StateCommand = StateCommand.SystemBusKK
+						};
+
+						o_mp.RequestList.Add(o_request);
+
+						if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
+						{
+							o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+						}
+
+						o_mp.CommandList.Remove(o_temp_command);
+
+						break;
+					}
+				case Enums.CommandType.NotCache_MO:
+					{
+						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+							? o_controller.StartRequestPointY - DrawChart.SquareSize
+							: o_controller.StartPointY;
+
+						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+						var o_request = new Request()
+						{
+							Command = o_temp_command,
+							StateCommand = StateCommand.SystemBusKK
+						};
+
+						o_mp.RequestList.Add(o_request);
+
+						if (o_mp.Conveyor.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
+						{
+							o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+						}
+
+						o_mp.CommandList.Remove(o_temp_command);
+
+						break;
+					}
+				case Enums.CommandType.DMA:
+					{
+						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+							? o_controller.StartRequestPointY - DrawChart.SquareSize
+							: o_controller.StartPointY;
+
+						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+
+						var o_request = new Request()
+						{
+							Command = o_temp_command,
+						};
+
+						o_mp.RequestList.Add(o_request);
+
+						if (o_mp.DirectMemoryAccess.NumberOfTact <= o_controller.NumberOfTact && i_count == 0)
+						{
+							o_mp.DirectMemoryAccess.NumberOfTact = o_controller.NumberOfTact;
+						}
+
+						o_mp.CommandList.Remove(o_temp_command);
+
+						break;
+					}
 			}
 		}
 		/// <summary>
 		/// Метод получения свободного контроллера.
 		/// </summary>
 		/// <param name="a_controller">Список контроллеров</param>
-		private ExecutionVector GetFreeController(List<ExecutionVector> a_controller)
+		private ExecutionVector GetFreeController(List<ExecutionVector> a_controller, Microprocessor o_mp)
 		{
 			// Выбираем свободные контроллеры.
 			var a_cont_free = a_controller.Where(x => x.IsFree).OrderBy(x => x.Id).ToList();
 			// Если все заняты выбираем первый
-			if (a_cont_free == null)
+			if (a_cont_free.Count == 0)
 			{
 				return a_controller.Where(x => x.Id == 1).FirstOrDefault();
 			}
 			else
 			{
 				// Выбираем контроллер, у которого меньше всего занятого места.
-				ExecutionVector o_res_controller = a_cont_free.OrderBy(x => x.Id).FirstOrDefault();
-				int i_min = o_res_controller.NumberOfTact;
-				foreach(var o_cont in a_cont_free)
+				ExecutionVector o_res_controller = a_cont_free.OrderBy(x => x.NumberOfTact).FirstOrDefault();
+
+				if (o_mp.RequestList.Count == 0 && o_mp.CommandList.Count == 0)
 				{
-					if (i_min < o_cont.NumberOfTact)
-					{
-						i_min = o_cont.NumberOfTact;
-						o_res_controller = o_cont;
-					}
+					return o_res_controller;
+				}
+
+				int num_of_request_in_list = o_mp.RequestList
+					.Where(x => x.Command.ControllerId == o_res_controller.Id).Count();
+
+				// Проверяем, есть ли у контроллера заявки и находятся ли команды в очереди выполнения в МП.
+				if (num_of_request_in_list == 0 && o_mp.CommandList.Count == 0)
+				{
+					// Выбирается контроллер с большим количеством заявок.
+					var o_temp_controller = o_mp.RequestList
+						.GroupBy(grp => grp.Command.ControllerId)
+						.Select(grp => new {
+							ControllerId = grp.Key,
+							NumOfCommand = grp.Count()
+						}).OrderBy(x=> x.NumOfCommand).FirstOrDefault();
+
+					o_res_controller = a_cont_free.Where(x=> x.Id == o_temp_controller.ControllerId).FirstOrDefault();
 				}
 
 				return o_res_controller;
@@ -635,52 +692,109 @@ namespace CiclogramWriter
 		/// </summary>
 		private void brn_gen_Click(object sender, EventArgs e)
 		{
+			List<Command> a_gen_command = new List<Command>() {
+				new Command()
+				{
+					Id = 1,
+					CommandType = Enums.CommandType.NotCache_MO,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 2,
+					CommandType = Enums.CommandType.Cache_False,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 3,
+					CommandType = Enums.CommandType.NotCache_False,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 4,
+					CommandType = Enums.CommandType.NotCache_MO,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 5,
+					CommandType = Enums.CommandType.Cache_MO,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 6,
+					CommandType = Enums.CommandType.NotCache_False,
+					NumberOfClockCycles = 1,
+				},
+				new Command()
+				{
+					Id = 7,
+					CommandType = Enums.CommandType.NotCache_MO,
+					NumberOfClockCycles = 2,
+				},
+				new Command()
+				{
+					Id = 8,
+					CommandType = Enums.CommandType.Cache_False,
+					NumberOfClockCycles = 2,
+				}
+			};
+
 			if (processor.MPList.Count == 0)
 			{
 				MessageBox.Show("Добавьте микропроцессор.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
 			}
 
-			List<Command> a_gen_command = new List<Command>();
+			//List<Command> a_gen_command = new List<Command>();
 
-			for (int i = 0; i < 100; i++)
-			{
-				var o_command = new Command()
-				{
-					Id = (i + 1),
-					NumberOfClockCycles = new Random().Next(1,5)
-				};
+			//for (int i = 0; i < 100; i++)
+			//{
+			//	var o_command = new Command()
+			//	{
+			//		Id = (i + 1),
+			//		NumberOfClockCycles = new Random().Next(1,5)
+			//	};
 
-				switch(new Random().Next(1, 4))
-				{
-					case 1:
-						{
-							o_command.CommandType = Enums.CommandType.Cache_False;
-							break;
-						}
-					case 2:
-						{
-							o_command.CommandType = Enums.CommandType.Cache_MO;
-							break;
-						}
-					case 3:
-						{
-							o_command.CommandType = Enums.CommandType.NotCache_False;
-							break;
-						}
-					case 4:
-						{
-							o_command.CommandType = Enums.CommandType.NotCache_MO;
-							break;
-						}
-				}
+			//	switch(new Random().Next(1, 4))
+			//	{
+			//		case 1:
+			//			{
+			//				o_command.CommandType = Enums.CommandType.Cache_False;
+			//				break;
+			//			}
+			//		case 2:
+			//			{
+			//				o_command.CommandType = Enums.CommandType.Cache_MO;
+			//				break;
+			//			}
+			//		case 3:
+			//			{
+			//				o_command.CommandType = Enums.CommandType.NotCache_False;
+			//				break;
+			//			}
+			//		case 4:
+			//			{
+			//				o_command.CommandType = Enums.CommandType.NotCache_MO;
+			//				break;
+			//			}
+			//	}
 
-				a_gen_command.Add(o_command);
-			}
+			//	a_gen_command.Add(o_command);
+			//}
 
 			int id_mp = Int32.Parse(tb_num_pm.Text);
 			var o_mp = processor.MPList.Where(x => x.Id == id_mp).FirstOrDefault();
 			o_mp.CommandList.AddRange(a_gen_command);
+
+			bool draw_dma = o_mp.CommandList.Where(x => x.CommandType == Enums.CommandType.DMA).Count() > 0;
+			if (draw_dma)
+			{
+				o_mp.DirectMemoryAccess = new ExecutionVector(1);
+			}
 
 			UpdateListCommand_RichTB();
 		}
