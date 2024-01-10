@@ -288,6 +288,8 @@ namespace CiclogramWriter
 					WorkWithRequest(o_mp, o_controller, o_draw, o_graphic);
 				}
 
+				o_controller = GetFreeController(o_mp.ControllerList, o_mp);
+
 				// Выбираем команды
 				if (o_mp.CommandList.Count > 0)
 				{
@@ -304,7 +306,7 @@ namespace CiclogramWriter
 				{
 					o_mp.Conveyor.IsFree = true;
 
-					if (o_mp.NumberOfTactTime > o_controller.NumberOfTact)
+					if (o_controller !=null && o_mp.NumberOfTactTime > o_controller.NumberOfTact)
 					{
 						o_controller.NumberOfTact = o_mp.NumberOfTactTime;
 					}
@@ -481,6 +483,8 @@ namespace CiclogramWriter
 			var o_temp_command = o_mp.CommandList.OrderBy(x=> x.Id).FirstOrDefault();
 			o_temp_command.ControllerId = o_controller.Id;
 
+			var a_request_list = o_mp.RequestList.Where(x => x.Command.ControllerId == o_controller.Id).ToList();
+
 			switch (o_temp_command.CommandType)
 			{
 				case Enums.CommandType.Cache_False:
@@ -506,7 +510,7 @@ namespace CiclogramWriter
 
 						o_controller.NumberOfTact += 1;
 
-						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
 							? o_controller.StartRequestPointY - DrawChart.SquareSize
 							: o_controller.StartPointY;
 
@@ -539,7 +543,7 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.NotCache_False:
 					{
-						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
 							? o_controller.StartRequestPointY - DrawChart.SquareSize
 							: o_controller.StartPointY;
 
@@ -564,7 +568,7 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.NotCache_MO:
 					{
-						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
 							? o_controller.StartRequestPointY - DrawChart.SquareSize
 							: o_controller.StartPointY;
 
@@ -589,7 +593,7 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.DMA:
 					{
-						o_controller.StartRequestPointY = (o_mp.RequestList.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
 							? o_controller.StartRequestPointY - DrawChart.SquareSize
 							: o_controller.StartPointY;
 
