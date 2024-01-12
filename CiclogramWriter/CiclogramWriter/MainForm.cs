@@ -2,12 +2,9 @@
 using CiclogramWriter.Enums;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CiclogramWriter
@@ -35,7 +32,7 @@ namespace CiclogramWriter
 
 			for(int i=0; i< (int)num_of_control.Value; i++)
 			{
-				o_mp_new.ControllerList.Add(new ExecutionVector(i+1));
+				o_mp_new.ControllerList.Add(new Controller(i+1));
 			}
 
 			tb_num_pm.Text = id_mp.ToString();
@@ -107,7 +104,7 @@ namespace CiclogramWriter
 
 				if (o_mp.DirectMemoryAccess == null)
 				{
-					o_mp.DirectMemoryAccess = new ExecutionVector(1);
+					o_mp.DirectMemoryAccess = new DirectMemoryAccess(1);
 				}
 			}
 			else
@@ -296,22 +293,24 @@ namespace CiclogramWriter
 					WorkWithCommand(o_mp, o_controller, o_draw, o_graphic);
 				}
 
-				// Проверряем занята ли системная шина
-				if (o_mp.Conveyor.NumberOfTact > o_mp.NumberOfTactTime)
+				// Проверяем занята ли системная шина
+				if (o_mp.Conveyor.NumberOfTact > o_controller.NumberOfTactTime)
 				{
 					o_mp.Conveyor.IsFree = false;
-					o_mp.NumberOfTactTime++;
+					o_controller.NumberOfTactTime++;
 				}
 				else
 				{
 					o_mp.Conveyor.IsFree = true;
 
-					if (o_controller !=null && o_mp.NumberOfTactTime > o_controller.NumberOfTact)
+					if (o_controller !=null && o_controller.NumberOfTactTime > o_controller.NumberOfTact)
 					{
-						o_controller.NumberOfTact = o_mp.NumberOfTactTime;
+						o_controller.NumberOfTact = o_controller.NumberOfTactTime;
 					}
 
-					foreach(var o_contr_set_free in o_mp.ControllerList)
+					// Разблокируем контроллеры, когда освободится системная шина
+					var a_busy_controller = o_mp.ControllerList.Where(x => !x.IsFree && x.NumberOfTactTime > x.NumberOfTact).ToList();
+					foreach (var o_contr_set_free in a_busy_controller)
 					{
 						o_contr_set_free.IsFree = true;
 					}
@@ -328,7 +327,7 @@ namespace CiclogramWriter
 		/// <param name="o_controller">Контроллер</param>
 		/// <param name="o_draw">Объект отрисовки элементов</param>
 		/// <param name="o_graphic"></param>
-		private void WorkWithRequest(Microprocessor o_mp, ExecutionVector o_controller, DrawChart o_draw, Graphics o_graphic)
+		private void WorkWithRequest(Microprocessor o_mp, Controller o_controller, DrawChart o_draw, Graphics o_graphic)
 		{
 			// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
 			var a_request_priority = o_mp.RequestList
@@ -361,7 +360,7 @@ namespace CiclogramWriter
 
 						o_mp.RequestList.Remove(o_temp_request);
 
-						o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+						o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 
 						break;
 					}
@@ -391,7 +390,7 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Remove(o_temp_request);
 
-									o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 
 									break;
 								}
@@ -436,7 +435,7 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Remove(o_temp_request);
 
-									o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 
 									// Блокируем контроллер до выполнения команды У.О.
 									o_controller.IsFree = false;
@@ -453,7 +452,7 @@ namespace CiclogramWriter
 
 									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
 
-									o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 
 									break;
 								}
@@ -478,7 +477,7 @@ namespace CiclogramWriter
 		/// <param name="o_controller">Контроллер</param>
 		/// <param name="o_draw">Объект отрисовки элементов</param>
 		/// <param name="o_graphic"></param>
-		private void WorkWithCommand(Microprocessor o_mp, ExecutionVector o_controller, DrawChart o_draw, Graphics o_graphic)
+		private void WorkWithCommand(Microprocessor o_mp, Controller o_controller, DrawChart o_draw, Graphics o_graphic)
 		{
 			var o_temp_command = o_mp.CommandList.OrderBy(x=> x.Id).FirstOrDefault();
 			o_temp_command.ControllerId = o_controller.Id;
@@ -499,7 +498,7 @@ namespace CiclogramWriter
 
 						if (o_mp.Conveyor.IsFree)
 						{
-							o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+							o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 						}
 
 						break;
@@ -533,7 +532,7 @@ namespace CiclogramWriter
 
 						if (o_mp.Conveyor.IsFree)
 						{
-							o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+							o_controller.NumberOfTactTime = o_controller.NumberOfTact;
 						}
 
 						// Блокируем контроллер до выполнения команды У.О.
@@ -623,7 +622,7 @@ namespace CiclogramWriter
 		/// Метод получения свободного контроллера.
 		/// </summary>
 		/// <param name="a_controller">Список контроллеров</param>
-		private ExecutionVector GetFreeController(List<ExecutionVector> a_controller, Microprocessor o_mp)
+		private Controller GetFreeController(List<Controller> a_controller, Microprocessor o_mp)
 		{
 			// Выбираем свободные контроллеры.
 			var a_cont_free = a_controller.Where(x => x.IsFree).OrderBy(x => x.Id).ToList();
@@ -635,7 +634,7 @@ namespace CiclogramWriter
 			else
 			{
 				// Выбираем контроллер, у которого меньше всего занятого места.
-				ExecutionVector o_res_controller = a_cont_free.OrderBy(x => x.NumberOfTact).FirstOrDefault();
+				Controller o_res_controller = a_cont_free.OrderBy(x => x.NumberOfTact).FirstOrDefault();
 
 				if (o_mp.RequestList.Count == 0 && o_mp.CommandList.Count == 0)
 				{
@@ -781,7 +780,7 @@ namespace CiclogramWriter
 			bool draw_dma = o_mp.CommandList.Where(x => x.CommandType == Enums.CommandType.DMA).Count() > 0;
 			if (draw_dma)
 			{
-				o_mp.DirectMemoryAccess = new ExecutionVector(1);
+				o_mp.DirectMemoryAccess = new DirectMemoryAccess(1);
 			}
 
 			UpdateListCommand_RichTB();

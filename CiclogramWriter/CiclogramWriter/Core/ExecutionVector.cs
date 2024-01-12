@@ -15,14 +15,6 @@
 		/// </summary>
 		public int StartPointY { get; set; } = 0;
 		/// <summary>
-		/// Позиция пикселей по оси X для отрисовки заявок
-		/// </summary>
-		public int StartRequestPointX { get; set; } = 0;
-		/// <summary>
-		/// Позиция пикселей по оси Y для отрисовки заявок
-		/// </summary>
-		public int StartRequestPointY { get; set; } = 0;
-		/// <summary>
 		/// Количество прошедших тактов по оси X
 		/// </summary>
 		public int NumberOfTact { get; set; } = 0;
