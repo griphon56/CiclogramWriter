@@ -13,10 +13,6 @@
 		/// Позиция пикселей по оси Y для отрисовки заявок
 		/// </summary>
 		public int StartRequestPointY { get; set; } = 0;
-		/// <summary>
-		/// Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)
-		/// </summary>
-		public int NumberOfTactTime { get; set; } = 0;
 
 		public Controller() { }
 

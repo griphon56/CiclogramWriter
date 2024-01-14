@@ -37,6 +37,10 @@ namespace CiclogramWriter.Core
 		/// Счетчик
 		/// </summary>
 		public int NumberOfСount { get; set; } = 0;
+		/// <summary>
+		/// Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)
+		/// </summary>
+		public int NumberOfTactTime { get; set; } = 0;
 
 		public Microprocessor() { }
 

@@ -294,25 +294,34 @@ namespace CiclogramWriter
 				}
 
 				// Проверяем занята ли системная шина
-				if (o_mp.Conveyor.NumberOfTact > o_controller.NumberOfTactTime)
+				if (o_mp.Conveyor.NumberOfTact > o_mp.NumberOfTactTime)
 				{
 					o_mp.Conveyor.IsFree = false;
-					o_controller.NumberOfTactTime++;
+					o_mp.NumberOfTactTime++;
 				}
 				else
 				{
-					o_mp.Conveyor.IsFree = true;
-
-					if (o_controller !=null && o_controller.NumberOfTactTime > o_controller.NumberOfTact)
-					{
-						o_controller.NumberOfTact = o_controller.NumberOfTactTime;
-					}
-
 					// Разблокируем контроллеры, когда освободится системная шина
-					var a_busy_controller = o_mp.ControllerList.Where(x => !x.IsFree && x.NumberOfTactTime > x.NumberOfTact).ToList();
-					foreach (var o_contr_set_free in a_busy_controller)
+					// должно выполнится как только, она освободится, а не постоянно. 
+					if (!o_mp.Conveyor.IsFree)
 					{
-						o_contr_set_free.IsFree = true;
+						o_mp.Conveyor.IsFree = true;
+
+						// Устанавливается такт выполнения системной шины
+						var a_controller = o_mp.ControllerList.ToList();
+						foreach (var o_contr_set_free in a_controller)
+						{
+							o_contr_set_free.IsFree = true;
+							o_contr_set_free.NumberOfTact = o_mp.NumberOfTactTime;
+						}
+					}
+					else
+					{
+						var a_controller = o_mp.ControllerList.Where(x=> !x.IsFree).ToList();
+						foreach (var o_contr_set_free in a_controller)
+						{
+							o_contr_set_free.IsFree = true;
+						}
 					}
 				}
 
@@ -329,10 +338,17 @@ namespace CiclogramWriter
 		/// <param name="o_graphic"></param>
 		private void WorkWithRequest(Microprocessor o_mp, Controller o_controller, DrawChart o_draw, Graphics o_graphic)
 		{
+			if(o_controller == null)
+			{
+				return;
+			}
+
 			// Выбираются заявки с приоритетом (Если висист [кеш; УО] или [не кеш; уо])
 			var a_request_priority = o_mp.RequestList
-				.Where(x => x.Command.ControllerId == o_controller.Id && x.Command.CommandType == Enums.CommandType.Cache_MO
-					|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN))
+				.Where(x => x.Command.ControllerId == o_controller.Id && (
+						x.Command.CommandType == Enums.CommandType.Cache_MO 
+						|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN)
+					))
 				.OrderBy(x => x.Command.Id).ToList();
 
 			var o_temp_request = o_mp.RequestList.Where(x => x.Command.ControllerId == o_controller.Id)
@@ -356,11 +372,18 @@ namespace CiclogramWriter
 
 						o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
 
-						o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
-
+						// Записывается последний максимальный показатель
+						if (o_mp.Conveyor.NumberOfTact < o_controller.NumberOfTact)
+						{
+							o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+						}
+						
 						o_mp.RequestList.Remove(o_temp_request);
 
-						o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+						if (o_mp.NumberOfTactTime < o_controller.NumberOfTact)
+						{
+							o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+						}
 
 						break;
 					}
@@ -390,7 +413,10 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Remove(o_temp_request);
 
-									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+									if (o_mp.NumberOfTactTime < o_controller.NumberOfTact)
+									{
+										o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									}
 
 									break;
 								}
@@ -435,7 +461,10 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Remove(o_temp_request);
 
-									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+									if (o_mp.NumberOfTactTime < o_controller.NumberOfTact)
+									{
+										o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									}
 
 									// Блокируем контроллер до выполнения команды У.О.
 									o_controller.IsFree = false;
@@ -450,9 +479,16 @@ namespace CiclogramWriter
 
 									o_mp.RequestList.Remove(o_temp_request);
 
-									o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+									// Записывается последний максимальный показатель
+									if (o_mp.Conveyor.NumberOfTact < o_controller.NumberOfTact)
+									{
+										o_mp.Conveyor.NumberOfTact = o_controller.NumberOfTact;
+									}
 
-									o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+									if (o_mp.NumberOfTactTime < o_controller.NumberOfTact)
+									{
+										o_mp.NumberOfTactTime = o_controller.NumberOfTact;
+									}
 
 									break;
 								}
@@ -498,7 +534,7 @@ namespace CiclogramWriter
 
 						if (o_mp.Conveyor.IsFree)
 						{
-							o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+							o_mp.NumberOfTactTime = o_controller.NumberOfTact;
 						}
 
 						break;
@@ -532,7 +568,7 @@ namespace CiclogramWriter
 
 						if (o_mp.Conveyor.IsFree)
 						{
-							o_controller.NumberOfTactTime = o_controller.NumberOfTact;
+							o_mp.NumberOfTactTime = o_controller.NumberOfTact;
 						}
 
 						// Блокируем контроллер до выполнения команды У.О.
