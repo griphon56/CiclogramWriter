@@ -368,9 +368,18 @@ namespace CiclogramWriter
 			{
 				case Enums.CommandType.Cache_MO:
 					{
-						o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
+						// Проверяем что системная шина свободна, устанавливаем актуальное значение.
+						if (o_mp.TactWhenSystemBusIsFree > o_controller.NumberOfTact)
+						{
+							o_controller.NumberOfTact = o_mp.TactWhenSystemBusIsFree;
+						}
 
+						o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
+						
 						o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+						
+						// Присваиваю такт когда системная шина освободится.
+						o_mp.TactWhenSystemBusIsFree = o_controller.NumberOfTact;
 
 						// Записывается последний максимальный показатель
 						if (o_mp.Conveyor.NumberOfTact < o_controller.NumberOfTact)
@@ -473,9 +482,18 @@ namespace CiclogramWriter
 								}
 							case StateCommand.SystemBusKN:
 								{
+									// Проверяем что системная шина свободна, устанавливаем актуальное значение.
+									if (o_mp.TactWhenSystemBusIsFree > o_controller.NumberOfTact)
+									{
+										o_controller.NumberOfTact = o_mp.TactWhenSystemBusIsFree;
+									}
+
 									o_draw.DrawSystemBusKN(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartPointY, processor.Fsh);
 
 									o_controller.NumberOfTact += o_temp_request.Command.NumberOfClockCycles * processor.Fsh;
+									
+									// Присваиваю такт когда системная шина освободится.
+									o_mp.TactWhenSystemBusIsFree = o_controller.NumberOfTact;
 
 									o_mp.RequestList.Remove(o_temp_request);
 

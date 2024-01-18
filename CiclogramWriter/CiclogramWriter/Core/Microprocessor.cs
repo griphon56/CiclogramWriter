@@ -41,6 +41,10 @@ namespace CiclogramWriter.Core
 		/// Счетчик тактов (необходим для получения информации, как долго будет занята системная шина)
 		/// </summary>
 		public int NumberOfTactTime { get; set; } = 0;
+		/// <summary>
+		/// Такт на котором системная шина будет свободна
+		/// </summary>
+		public int TactWhenSystemBusIsFree { get; set; } = 0;
 
 		public Microprocessor() { }
 
