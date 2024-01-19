@@ -287,6 +287,21 @@ namespace CiclogramWriter
 
 				o_controller = GetFreeController(o_mp.ControllerList, o_mp);
 
+				// Проверяется, что в контроллере есть заявка.
+				// Если существует, тогда выполняется холостой прогон.
+				if (o_mp.RequestList.Count > 0 && o_controller!=null)
+				{
+					int num_of_request_in_controller = o_mp.RequestList
+					.Where(x => x.Command.ControllerId == o_controller.Id && (
+							x.Command.CommandType == Enums.CommandType.Cache_MO
+							|| (x.Command.CommandType == Enums.CommandType.NotCache_MO && x.StateCommand == StateCommand.SystemBusKN)
+						)).Count();
+					if (num_of_request_in_controller > 0)
+					{
+						continue;
+					}
+				}
+
 				// Выбираем команды
 				if (o_mp.CommandList.Count > 0)
 				{

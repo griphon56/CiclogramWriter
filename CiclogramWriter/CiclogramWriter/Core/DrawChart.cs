@@ -22,11 +22,11 @@ namespace CiclogramWriter.Core
 		/// <summary>
 		/// Отступ между основными линиями (Контроллер, конвейер)
 		/// </summary>
-		public int IndentLine { get; private set; } = SquareSize * 5;
+		public int IndentLine { get; private set; } = SquareSize * 6;
 		/// <summary>
 		/// Шаг отступа между линими (Контроллер, конвейер)
 		/// </summary>
-		public int StepIndentLine { get; set; } = SquareSize * 5;
+		public int StepIndentLine { get; set; } = SquareSize * 6;
 
 		private Font DrawFont { get; set; } = new Font("Calibri", 10);
 		private SolidBrush DrawBrush { get; set; } = new SolidBrush(Color.Black);
