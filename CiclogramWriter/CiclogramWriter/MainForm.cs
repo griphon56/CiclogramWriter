@@ -749,51 +749,57 @@ namespace CiclogramWriter
 		private void brn_gen_Click(object sender, EventArgs e)
 		{
 			List<Command> a_gen_command = new List<Command>() {
+				//new Command()
+				//{
+				//	Id = 1,
+				//	CommandType = Enums.CommandType.DMA,
+				//	NumberOfClockCycles = 4,
+				//},
 				new Command()
 				{
-					Id = 1,
+					Id = 2,
 					CommandType = Enums.CommandType.NotCache_MO,
 					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
-					Id = 2,
+					Id = 3,
 					CommandType = Enums.CommandType.Cache_False,
 					NumberOfClockCycles = 2,
 				},
 				new Command()
 				{
-					Id = 3,
+					Id = 4,
 					CommandType = Enums.CommandType.NotCache_False,
 					NumberOfClockCycles = 2,
 				},
 				new Command()
 				{
-					Id = 4,
+					Id = 5,
 					CommandType = Enums.CommandType.NotCache_MO,
 					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
-					Id = 5,
+					Id = 6,
 					CommandType = Enums.CommandType.Cache_MO,
 					NumberOfClockCycles = 2,
 				},
 				new Command()
 				{
-					Id = 6,
+					Id = 7,
 					CommandType = Enums.CommandType.NotCache_False,
 					NumberOfClockCycles = 1,
 				},
 				new Command()
 				{
-					Id = 7,
+					Id = 8,
 					CommandType = Enums.CommandType.NotCache_MO,
 					NumberOfClockCycles = 2,
 				},
 				new Command()
 				{
-					Id = 8,
+					Id = 9,
 					CommandType = Enums.CommandType.Cache_False,
 					NumberOfClockCycles = 2,
 				}
