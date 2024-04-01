@@ -282,6 +282,9 @@ namespace CiclogramWriter
 				// Выбираем заявки
 				if (o_mp.RequestList.Count > 0 && o_mp.Conveyor.IsFree)
 				{
+					WorkWithRequest_DMA(o_mp, o_controller, o_draw, o_graphic);
+
+					
 					WorkWithRequest(o_mp, o_controller, o_draw, o_graphic);
 				}
 
@@ -341,6 +344,40 @@ namespace CiclogramWriter
 				}
 
 				o_mp.NumberOfСount++;
+			}
+		}
+
+		/// <summary>
+		/// Метод работы с заявками (отрисовка) ДМА
+		/// </summary>
+		/// <param name="o_mp">Микропроцессор</param>
+		/// <param name="o_controller">Контроллер</param>
+		/// <param name="o_draw">Объект отрисовки элементов</param>
+		/// <param name="o_graphic"></param>
+		private void WorkWithRequest_DMA(Microprocessor o_mp, Controller o_controller, DrawChart o_draw, Graphics o_graphic)
+		{
+			if (o_controller == null)
+			{
+				return;
+			}
+
+			var a_request = o_mp.RequestList
+				.Where(x => x.Command.ControllerId == o_controller.Id && x.Command.CommandType == Enums.CommandType.DMA)
+				.OrderBy(x => x.Command.Id).ToList();
+
+			if (a_request.Count > 0)
+			{
+				var o_temp_request = a_request.OrderBy(x => x.Command.Id).FirstOrDefault();
+
+				o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.DirectMemoryAccess.NumberOfTact * DrawChart.SquareSize, o_mp.DirectMemoryAccess.StartPointY, processor.Fop);
+
+				o_mp.DirectMemoryAccess.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
+
+				o_mp.RequestList.Remove(o_temp_request);
+			}
+			else
+			{
+				return;
 			}
 		}
 
@@ -529,14 +566,6 @@ namespace CiclogramWriter
 
 						break;
 					}
-				case Enums.CommandType.DMA:
-					{
-						o_draw.DrawSystemBusKK(o_graphic, $"{o_temp_request.Command.Id}", o_temp_request.Command.NumberOfClockCycles, o_mp.DirectMemoryAccess.NumberOfTact * DrawChart.SquareSize, o_mp.DirectMemoryAccess.StartPointY, processor.Fop);
-
-						o_mp.DirectMemoryAccess.NumberOfTact += 2 * o_temp_request.Command.NumberOfClockCycles * processor.Fop;
-
-						break;
-					}
 			}
 		}
 		/// <summary>
@@ -578,13 +607,7 @@ namespace CiclogramWriter
 
 						o_controller.NumberOfTact += 1;
 
-						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-							? o_controller.StartRequestPointY - DrawChart.SquareSize
-							: o_controller.StartPointY;
-
-						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+						DrawVerticalLineRequest(a_request_list, o_temp_command, o_controller, o_draw, o_graphic);
 
 						var o_request = new Request()
 						{
@@ -611,13 +634,7 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.NotCache_False:
 					{
-						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-							? o_controller.StartRequestPointY - DrawChart.SquareSize
-							: o_controller.StartPointY;
-
-						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+						DrawVerticalLineRequest(a_request_list, o_temp_command, o_controller, o_draw, o_graphic);
 
 						var o_request = new Request()
 						{
@@ -636,13 +653,7 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.NotCache_MO:
 					{
-						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-							? o_controller.StartRequestPointY - DrawChart.SquareSize
-							: o_controller.StartPointY;
-
-						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+						DrawVerticalLineRequest(a_request_list, o_temp_command, o_controller, o_draw, o_graphic);
 
 						var o_request = new Request()
 						{
@@ -661,17 +672,11 @@ namespace CiclogramWriter
 					}
 				case Enums.CommandType.DMA:
 					{
-						o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
-							? o_controller.StartRequestPointY - DrawChart.SquareSize
-							: o_controller.StartPointY;
-
-						o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
-
-						o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+						DrawVerticalLineRequest(a_request_list, o_temp_command, o_controller, o_draw, o_graphic);
 
 						var o_request = new Request()
 						{
-							Command = o_temp_command,
+							Command = o_temp_command
 						};
 
 						o_mp.RequestList.Add(o_request);
@@ -731,6 +736,23 @@ namespace CiclogramWriter
 			}
 		}
 		/// <summary>
+		/// Метод отрисовки вертикальной линии с обозначением номера заявки.
+		/// </summary>
+		/// <param name="a_request_list">Список заявок</param>
+		/// <param name="o_temp_command">Команда</param>
+		/// <param name="o_controller">Контроллер</param>
+		/// <param name="o_draw">Объект отрисовки элементов</param>
+		/// <param name="o_graphic"></param>
+		private void DrawVerticalLineRequest(List<Request> a_request_list, Command o_temp_command, Controller o_controller, DrawChart o_draw, Graphics o_graphic) {
+			o_controller.StartRequestPointY = (a_request_list.Count > 0 && o_controller.StartRequestPointX == o_controller.NumberOfTact * DrawChart.SquareSize)
+				? o_controller.StartRequestPointY - DrawChart.SquareSize
+				: o_controller.StartPointY;
+
+			o_draw.DrawRequest(o_graphic, o_temp_command.Id.ToString(), o_controller.NumberOfTact * DrawChart.SquareSize, o_controller.StartRequestPointY);
+
+			o_controller.StartRequestPointX = o_controller.NumberOfTact * DrawChart.SquareSize;
+		}
+		/// <summary>
 		/// Метод отрисовки графика
 		/// </summary>
 		private void btn_draw_chart_Click(object sender, EventArgs e)
@@ -749,12 +771,12 @@ namespace CiclogramWriter
 		private void brn_gen_Click(object sender, EventArgs e)
 		{
 			List<Command> a_gen_command = new List<Command>() {
-				//new Command()
-				//{
-				//	Id = 1,
-				//	CommandType = Enums.CommandType.DMA,
-				//	NumberOfClockCycles = 4,
-				//},
+				new Command()
+				{
+					Id = 1,
+					CommandType = Enums.CommandType.DMA,
+					NumberOfClockCycles = 4,
+				},
 				new Command()
 				{
 					Id = 2,
